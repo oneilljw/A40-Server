@@ -22,7 +22,7 @@ public class A4OServer
 	 * @throws IOException 
 	 */
 	
-	private static final String APPNAME = "Our Neighbor's Child Server v3.00";
+	private static final String APPNAME = "Act For Others Server v1.00";
 	private static final String ONC_COPYRIGHT = "\u00A92017 John W. O'Neill";
 	private ServerUI serverUI;	//User IF
 	private ServerLoop serverIF; 	//Server loop
