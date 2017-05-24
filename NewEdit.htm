@@ -1,0 +1,413 @@
+ <!DOCTYPE html>
+<html>
+<head lang="en">
+  <title>ONC Family Contact Info Update</title>
+  <link rel="stylesheet" type="text/css" href="oncstylesheet.css">
+  <link rel="stylesheet" type="text/css" href="oncdialogstylesheet.css">
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="commonfamily.js"></script>
+  <script> 
+	var hohAddressGood = false;
+  	var delAddressGood = false;
+  	var errorColor = '#FF9999';
+  	
+  	$( document ).ready(function()
+	{
+  		//set the hidden values
+  		document.getElementById('year').value= new Date().getFullYear().toString();
+  		document.getElementById('token').value= sessionStorage.getItem("token");
+  		document.getElementById('targetid').value= sessionStorage.getItem("targetid");
+  		
+  		//update the nav bar links with token
+  		document.getElementById('logoutlink').href="logout?token=" + sessionStorage.getItem('token');
+  		document.getElementById('homelink').href="startpage?token=" + sessionStorage.getItem('token')
+		 +'&year=' + sessionStorage.getItem('curryear') +'&famref=' + sessionStorage.getItem('famref');
+  		
+  		var urlmode = window.location.href;
+  		if(urlmode.indexOf("familyupdate") > -1)
+  		{
+  			familyparams = "token=" + sessionStorage.getItem("token") + "&" +
+  							"year=" + new Date().getFullYear().toString() + "&" +
+  							"targetid=" + sessionStorage.getItem("targetid") + "&" +
+  							"callback=?";
+  			
+  			$.getJSON('getfamily', familyparams, function(family)
+  			{
+  		     	updateFamilyInfo(family);
+  		     	
+  		     	//now that inputs are set for family, enable the address input listeners
+  		     	document.getElementById('housenum').setAttribute('onchange','verifyHOHAddress()');
+  		     	document.getElementById('street').setAttribute('onchange','verifyHOHAddress()');
+  		     	document.getElementById('unit').setAttribute('onchange','verifyHOHAddress()');
+  		     	document.getElementById('city').setAttribute('onchange','onCityChanged("city")');
+  		     	document.getElementById('zipcode').setAttribute('onchange','onZipChanged("zipcode")');
+  		     	
+  		     	document.getElementById('delhousenum').setAttribute('onchange','verifyDeliveryAddress()');
+  		     	document.getElementById('delstreet').setAttribute('onchange','verifyDeliveryAddress()');
+  		     	document.getElementById('delunit').setAttribute('onchange','verifyDeliveryAddress()');
+  		     	document.getElementById('delcity').setAttribute('onchange','onCityChanged("delcity")');
+  		     	document.getElementById('delzipcode').setAttribute('onchange','onZipChanged("delzipcode")');
+  		     	
+  		     	//verify the addresses
+  		    	verifyHOHAddress();
+  		    	verifyDeliveryAddress();
+  		     	
+  		     	//get families children
+  		     	var year = document.getElementById('year').value;
+  		     	getFamiliesChildrenFromServer(year, sessionStorage.getItem("targetid"));
+  		     	
+  		     	//get families adults
+  		     	getAdultsFromServer(year, sessionStorage.getItem("targetid"));
+  		     	
+  		     	//get meal and update if family meal id > 1
+  		     	if(family.mealID > -1)
+  		     	{
+  		     		var mealparams = "token=" + sessionStorage.getItem("token") + "&" +
+  		     						"year=" + new Date().getFullYear().toString() + "&" +
+  		     						"mealid=" + family.mealID.toString() + "&" +
+  		     						"callback=?";	
+  		     					
+  		     		$.getJSON('getmeal', mealparams, function(meal)
+  		     	  	{
+  		     			updateMealRequest(family, meal);
+  		     		});
+  		     	}
+  		     	else
+  		     		document.getElementById('mealstatus').value = "None Requested";
+  			});
+  		}	
+  		
+  		$(function() {
+  		    $("form input").keypress(function (e) {
+  		        if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
+  		            $('button[type=submit] .default').click();
+  		            return false;
+  		        } else {
+  		            return true;
+  		        }
+  		    });
+  		});
+  		
+  		$('html').bind('keypress', function(e)
+  		{
+  			if(e.keyCode == 13)
+  			{
+  				return false;
+  			}
+  		});
+	});
+  	
+  	function getFamiliesChildrenFromServer(year, targetid)
+    {
+    	childrenparams=  "token=" + sessionStorage.getItem("token") + "&" +
+		"year=" + year + "&" +
+		"targetid=" + targetid + "&" +
+		"callback=?";
+
+		$.getJSON('children', childrenparams, function(data)
+		{
+			childrenJson = data;
+			updateChildTable();
+		});
+    }
+  	
+  	function getAdultsFromServer(year, targetid)
+    {
+    	adultsparams=  "token=" + sessionStorage.getItem("token") + "&" +
+			"year=" + year + "&" + "targetid=" + targetid + "&" + "callback=?";
+			
+		$.getJSON('adults', adultsparams, function(data)
+		{
+	    	adultsJson = data;
+	     	updateAdultTable();
+		});
+    }
+  	
+  	function updateFamilyInfo(family)
+  	{	
+  		console.log("Updating Family Info");
+  		var familyElements = [family.HOHFirstName, family.HOHLastName, family.Language, family.HouseNum, family.Street, 
+  			                    family.UnitNum, family.City, family.FamilyEmail, family.details];
+  			
+  		var formElements = ['hohfn', 'hohln','language', 'housenum', 'street', 'unit', 'city', 'email', 'detail'];
+  			
+  		//set name, HoH address, email and detail elements
+  		for(var i=0; i<familyElements.length; i++)
+  			document.getElementById(formElements[i]).value = familyElements[i];
+  		
+  		//set zip code options -- update select options for city first
+  		cityChanged('city');
+  		document.getElementById('zipcode').value = family.ZipCode;
+  	
+  		//set phone elements
+  		var homephoneParts= family.HomePhone.split(/\r\n|\r|\n/g);
+  		document.getElementById('homephone').value = homephoneParts[0];
+  		
+  		var otherphoneParts= family.OtherPhone.split(/\r\n|\r|\n/g);
+  		if(otherphoneParts.length > 1)
+  		{
+  			document.getElementById('cellphone').value = otherphoneParts[0];
+  			document.getElementById('altphone').value = otherphoneParts[1];
+  		}
+  		else if(otherphoneParts.length === 1)
+  			document.getElementById('cellphone').value = otherphoneParts[0];
+  			
+  		//set delivery adress elements
+  		var deliveryAddr = family.substituteDeliveryAddress.split('_');
+  		var delAddrElements = ['delhousenum', 'delstreet', 'delunit', 'delcity', 'delzipcode'];
+  		if(deliveryAddr.length === delAddrElements.length)	//delivery address is different
+  		{
+  			for(var i=0; i<deliveryAddr.length-1; i++)
+  				document.getElementById(delAddrElements[i]).value = deliveryAddr[i];
+  			
+  			cityChanged('delcity');
+  			document.getElementById('delzipcode').value = deliveryAddr[4];
+  		}
+  		else	//delivery address is the same. Copy and set same as checkbox
+  		{
+  			document.getElementById('checkbox').checked = true;
+	  		copyAddressToDeliveryAddress();
+  		}
+  	}
+  	
+  	function updateMealRequest(family, meal)
+  	{
+  		document.getElementById('mealstatus').value = family.mealStatus;
+  		document.getElementById('mealtype').value = meal.type;
+  		document.getElementById('dietres').value = meal.dietaryRestrictions
+  	}
+  </script>
+  <style>
+	#submitspan {float: right;}
+	#errormessage
+	{
+		float: left;
+		font-weight: bold;
+		font-style: italic;
+		color: red;
+	}
+	table, th, td {border: 1px solid black;}
+  </style>
+</head>
+<body>
+  <a href="#timeoutdlg" id="timeoutanchor" style="visibility: hidden">Timeout</a>
+  <div id="topbar" class="topbar">
+    <img src="onclogo" height="55" width="75"/>
+    <p><span id="banner">ONC Family Contact Information Update Form</span><br>
+	<span id="message">(please edit and click Submit To ONC to update contact info)</span></p>
+  </div>
+  <nav>
+    <ul>
+	    <li id="homeli"><a id='homelink'>Home</a></li>
+	</ul>
+	<ul class='floatright'>
+	    <li id="logoutli"><a id='logoutlink'>Logout</a></li>
+	</ul>
+  </nav>
+  <form id="updatefamily" action="updatefamily" onsubmit="return onSubmit()" method="post">
+  <input id='token' type="hidden" name="token">
+  <input id="year" type="hidden" name="year">
+  <input id='targetid' type="hidden" name="targetid">
+  <br>
+  <fieldset>
+  <legend class="legend-major">Head of Household (HOH) Information</legend>
+    <input id="hohfn" title="First Name" name="hohFN" type="text" size="20" placeholder="First Name" value="HOHFN" required>
+    <input id="hohln" title="Last Name" name="hohLN" type="text" size="20" placeholder="Last Name", value="HOHLN" required>
+    <input id="homephone" title="Home Phone #" name="homephone" type="text" size="18" placeholder="Primary Phone #" onchange="verifyPhoneNumber(0)" required>
+    <input id= "cellphone" title="Cell Phone #" name="cellphone" type="text" size="18" placeholder="Alternate Phone #" onchange="verifyPhoneNumber(1)">
+    <input id= "altphone" title="Alternate Phone #" name="altphone" type="text" size="18" placeholder="2nd Alt Phone #" onchange="verifyPhoneNumber(2)">
+  	<select id="language" title="Primary language" name="language">
+		<option value="English">English</option>
+		<option value="Spanish">Spanish</option>
+		<option value="Arabic">Arabic</option>
+		<option value="Korean">Korean</option>
+		<option value="Vietnamese">Vietnamese</option>
+		<option value="Other">Other</option>
+		<option value="?">Unknown</option>
+	</select>
+	<br>
+	<input id="housenum" title="House #" name="housenum" type="text" size="8" placeholder="House #" autocomplete="off" required>
+    <input id="street" title="Street Name" name="street" type="text" size="20" placeholder="Street Name" autocomplete="off" required>
+    <input id="unit" title="Apt. or Unit #" name="unit" type="text" size="8" placeholder="Apt #" autocomplete="off">
+    <select id="city" title="City" name="city">
+		<option value="Centreville">Centreville</option>
+		<option value="Chantilly">Chantilly</option>
+		<option value="Clifton">Clifton</option>
+		<option value="Fairfax">Fairfax</option>
+		<option value="Fairfax Station">Fairfax Station</option>
+		<option value="Sully Station">Sully Station</option>
+		<option value="Alexandria">Alexandria</option>
+		<option value="Annandale">Annandale</option>
+		<option value="Arlington">Arlington</option>
+		<option value="Baileys Crossroads">Baileys Crossroads</option>
+		<option value="Belleview">Belleview</option>
+		<option value="Burke">Burke</option>
+		<option value="Cameron Station">Cameron Station</option>
+		<option value="Dunn Loring">Dunn Loring</option>
+		<option value="Engleside">Engleside</option>
+		<option value="Falls Church">Falls Church</option>
+		<option value="Fort Belvoir">Fort Belvoir</option>
+		<option value="Franconia">Franconia</option>
+		<option value="Great Falls">Great Falls</option>
+		<option value="Greenway">Greenway</option>
+		<option value="Herndon">Herndon</option>
+		<option value="Jefferson Manor">Jefferson Manor</option>
+		<option value="Kingstowne">Kingstowne</option>
+		<option value="Lorton">Lorton</option>
+		<option value="Mason Neck">Mason Neck</option>
+		<option value="McLean">McLean</option>
+		<option value="Merrifield">Merrifield</option>
+		<option value="Mosby">Mosby</option>
+		<option value="Mount Vernon">Mount Vernon</option>
+		<option value="Newington">Newington</option>
+		<option value="North Springfield">North Springfield</option>
+		<option value="Oak Hill">Oak Hill</option>
+		<option value="Oakton">Oakton</option>
+		<option value="Pimmit">Pimmit</option>
+		<option value="Reston">Reston</option>
+		<option value="Seven Corners">Seven Corners</option>
+		<option value="Springfield">Springfield</option>
+		<option value="Tysons Corner">Tysons Corner</option>
+		<option value="Vienna">Vienna</option>
+		<option value="West McLean">West McLean</option>
+		<option value="West Springfield">West Springfield</option>
+	</select>
+    <select id="zipcode" title="Zip Code" name="zipcode">
+		<option value="20120">20120</option>
+		<option value="20121">20121</option>
+		<option value="20122">20122</option>
+	</select>
+	<input id="email" title="E-mail address" name="email" type="email" size="30" placeholder="email address">
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Delivery Address: Update address that ONC will use for gift delivery</legend>
+	<input id="checkbox" type="checkbox" name="sameaddress" title="Uncheck to edit HoH or Delivery address" onclick="sameAddressClicked(this)">Check if same as HOH address above, otherwise complete:
+	<input id="delhousenum" title="Delivery House #" name="delhousenum" type="text" size="8" placeholder="House #" autocomplete="off" required>
+    <input id="delstreet" title="Delivery Street Name" name="delstreet" type="text" size="20" placeholder="Street Name" autocomplete="off" required>
+    <input id="delunit" title="Deleivery Apt. or Unit #" name="delunit" type="text" size="8" placeholder="Apt #" autocomplete="off">
+    <select id="delcity" title="Delivery City" name="delcity">
+		<option value="Centreville">Centreville</option>
+		<option value="Chantilly">Chantilly</option>
+		<option value="Clifton">Clifton</option>
+		<option value="Fairfax">Fairfax</option>
+		<option value="Fairfax Station">Fairfax Station</option>
+		<option value="Sully Station">Sully Station</option>
+		<option value="Alexandria">Alexandria</option>
+		<option value="Annandale">Annandale</option>
+		<option value="Arlington">Arlington</option>
+		<option value="Baileys Crossroads">Baileys Crossroads</option>
+		<option value="Belleview">Belleview</option>
+		<option value="Burke">Burke</option>
+		<option value="Cameron Station">Cameron Station</option>
+		<option value="Dunn Loring">Dunn Loring</option>
+		<option value="Engleside">Engleside</option>
+		<option value="Falls Church">Falls Church</option>
+		<option value="Fort Belvoir">Fort Belvoir</option>
+		<option value="Franconia">Franconia</option>
+		<option value="Great Falls">Great Falls</option>
+		<option value="Greenway">Greenway</option>
+		<option value="Herndon">Herndon</option>
+		<option value="Jefferson Manor">Jefferson Manor</option>
+		<option value="Kingstowne">Kingstowne</option>
+		<option value="Lorton">Lorton</option>
+		<option value="Mason Neck">Mason Neck</option>
+		<option value="McLean">McLean</option>
+		<option value="Merrifield">Merrifield</option>
+		<option value="Mosby">Mosby</option>
+		<option value="Mount Vernon">Mount Vernon</option>
+		<option value="Newington">Newington</option>
+		<option value="North Springfield">North Springfield</option>
+		<option value="Oak Hill">Oak Hill</option>
+		<option value="Oakton">Oakton</option>
+		<option value="Pimmit">Pimmit</option>
+		<option value="Reston">Reston</option>
+		<option value="Seven Corners">Seven Corners</option>
+		<option value="Springfield">Springfield</option>
+		<option value="Tysons Corner">Tysons Corner</option>
+		<option value="Vienna">Vienna</option>
+		<option value="West McLean">West McLean</option>
+		<option value="West Springfield">West Springfield</option>
+	</select>	
+    <select id="delzipcode" title="Deleivery Zip Code" name="delzipcode">
+		<option value="20120">20120</option>
+		<option value="20121">20121</option>
+		<option value="20122">20122</option>
+	</select>
+  </fieldset>
+  <br>
+  <fieldset>
+	<legend class="legend-major">Family Members: Review Only</legend>
+      <fieldset class='floatleft'> 
+	  <legend>Children</legend>
+	  <table id='childtable'>
+	  	<thead>
+    		<tr>
+        		<th>First Name</th>
+        		<th>Last Name</th>
+        		<th>DoB </th>
+        		<th>Gender </th>
+        		<th>School </th>
+    		</tr>
+        </thead>
+      	<tbody id="tchildbody">
+      	</tbody>
+      </table>
+  	</fieldset>
+	<fieldset class='floatleft'>
+	  <legend>Additional Adults</legend>
+	  <table id='adulttable'>
+	  	<thead>
+    		<tr>
+        		<th>Name</th>
+        		<th>Gender </th>
+    		</tr>
+    	</thead>
+    	<tbody id="tadultbody">
+    	</tbody>
+      </table>
+    </fieldset> 
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Meal Assistance Request Status: Review Only</legend>
+ 	<label for='mealstatus'>Status:</label>
+	<input id='mealstatus' type="text" size="22" title="Status of meal request" disabled>
+	<label for='mealtype'>Requested For:</label>
+    <select id="mealtype" name="mealtype" style="width: 136px" title="For which holidays does the family need meal assistance: Thanksgiving, December or Both?" disabled>
+		<option value="No Assistance Rqrd">No Assistance Rqrd</option>
+		<option value="Thanksgiving">Thanksgiving</option>
+		<option value="December">December</option>
+	</select>
+	<label for='dietres'>Restrictions:</label>
+	<input id="dietres" type="text" name="dietres" size="50" placeholder="Describe any dietary restrictions" title="Describe any family dietary restrictions" disabled>
+  </fieldset>
+  <br>
+  <fieldset>
+   <legend class="legend-major">Family Details: Update details (if any) about family you think ONC should know</legend>
+	<input id="detail" type="text" name="detail" size="128" placeholder="Details about family ONC should know" title="Provide ONC with information about the family you feel is important">
+  </fieldset>
+  <br>
+  <div>
+  	<span id="errormessage"></span>
+  	<span id="submitspan">
+  	  <label for="submit">Please check that all fields are complete prior to submission: </label>
+  	  <input id="submit" type="submit" value="Submit Update to ONC" style="background-color: #336699; color: #ffffff;" title="Click to sumbit family to ONC">
+  	</span>
+  </div>
+</form>
+<!-- Timeout Dialog -->
+  <div id="timeoutdlg" class="modalDialog">
+	<div id='inner'>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Session Timeout</span>
+		</div>
+		<p id='to_mssg'>Your session expired due to inactivity</p>
+    	<div id='buttonbar'>
+      	  <button id="submit" onclick="onSessionTimeout()">Ok</button>
+    	</div> 
+	</div>
+  </div>    
+</body>
+</html>   

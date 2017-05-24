@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <title>ONC Warehouse Volunteer Sign-In</title>
+  <link rel="stylesheet" type="text/css" href="oncstylesheet.css">
+  <link rel="stylesheet" type="text/css" href="oncdialogstylesheet.css">
+  <script src="jquery.js"></script>
+  <script> 
+  	var errorColor = '#FF9999';
+  	
+  	$( document ).ready(function()
+	{
+  		//set the hidden values. Set the activity to the hexadecimal code for Warehouse Support
+  		document.getElementById('year').value= new Date().getFullYear().toString();
+  		document.getElementById('activity').value= '4';
+  		
+  		//update the nav bar links with token
+  		document.getElementById('logoutlink').href="onchomepage";
+  		document.getElementById('homelink').href="onchomepage";
+  		
+  		//show the success dialog if driver was registered
+  		var urlmode = window.location.href;
+	  	if(urlmode.indexOf("signinvolunteer") > -1)
+  			window.location=document.getElementById('registeredanchor').href;
+	});
+  	
+  	function onGroupChange()
+  	{
+  		clearAllButGroupSelect();
+  		
+  		var groupSelectElement = document.getElementById('groupselect');
+  		var groupOtherLabelELement = document.getElementById("groupotherlbl");
+  		var groupOtherElement = document.getElementById('groupother');
+  		
+  		var selectValue = groupSelectElement.options[groupSelectElement.selectedIndex].value;
+  		
+  		if(selectValue === 'Other')
+  		{
+  			groupOtherLabelELement.style.visibility="visible";
+  			groupOtherElement.style.visibility="visible";
+  			
+  			document.getElementById('contactdiv').style.display = "block";
+  			document.getElementById('commentdiv').style.display = "block";
+  		}
+  		else if(selectValue.includes('Centreville') || selectValue.includes('Chantilly') ||
+  				selectValue.includes('Westfield') || selectValue.includes('FlintHill'))	
+  		{
+  			groupOtherLabelELement.style.visibility="hidden";
+  			groupOtherElement.style.visibility="hidden";
+  			
+  			document.getElementById('contactdiv').style.display = "none";
+  			document.getElementById('commentdiv').style.display = "none";
+  		}
+  		else 
+  		{
+  			groupOtherLabelELement.style.visibility="hidden";
+  			groupOtherElement.style.visibility="hidden";
+  			
+  			document.getElementById('contactdiv').style.display = "block";
+  			document.getElementById('commentdiv').style.display = "none";
+  		}
+  	}
+  	
+  	function getContactInfo()
+  	{
+  		var groupSelectElement = document.getElementById('groupselect');
+  		var selectValue = groupSelectElement.options[groupSelectElement.selectedIndex].value;
+  		
+  		if(!(selectValue.includes('Chantilly') || selectValue.includes('Centreville') ||
+  			selectValue.includes('Westfield') || selectValue.includes('FlintHill')) &&
+  			 document.getElementById('delfn').value.length > 0 && 
+  			  document.getElementById('delln').value.length > 0 )
+  		{
+  			var contactparams = "year=" + document.getElementById('year').value
+			+ "&delFN=" + document.getElementById('delfn').value
+			+ "&delLN=" + document.getElementById('delln').value
+			+ "&callback=?";
+  		
+  			$.getJSON('contactinfo', contactparams, function(driver)
+  			{
+  				//if retrun is good, set the fields
+  				if(driver.id > -1)
+  				{
+  					document.getElementById('delfn').value = driver.fName;
+  					document.getElementById('delln').value = driver.lName;
+  					document.getElementById('delemail').value = driver.email;
+  					document.getElementById('primaryphone').value = driver.cellPhone;
+  			  		document.getElementById('delhousenum').value = driver.hNum;
+  			  		document.getElementById('delstreet').value = driver.street;
+  			  		document.getElementById('delunit').value = driver.unit;
+  			  		document.getElementById('delcity').value = driver.city;
+  			  		document.getElementById('delzipcode').value = driver.zipcode;
+  			  		
+  			  		verifyPhoneNumber(0);
+  				}
+  			});
+  		}	
+  	}
+  	
+	function verifyPhoneNumber(elementNum)
+	{
+		var phoneElement= [document.getElementById('primaryphone')];
+		
+		var numberGood = true;
+		var number= phoneElement[elementNum].value;
+		
+		if(number == '')
+			phoneElement[elementNum].style.backgroundColor = '#FFFFFF';
+		else if(number.charAt(0) != '0' && number.length===12 && number.charAt(3)==='-' && number.charAt(7)==='-')
+			phoneElement[elementNum].style.backgroundColor = '#FFFFFF';
+		else if(number.charAt(0) != '0' && number.length===12 && number.charAt(3)==='.' && number.charAt(7)==='.')
+			phoneElement[elementNum].style.backgroundColor = '#FFFFFF';
+		else if(number.charAt(0) != '0' && number.length===10 && number.indexOf("-")===-1 && number.indexOf(".")===-1)
+			phoneElement[elementNum].style.backgroundColor = '#FFFFFF';
+		else
+		{
+			numberGood= false;
+			phoneElement[elementNum].style.backgroundColor = errorColor;
+		}
+	
+		return numberGood;
+	}
+	
+	function verifyPhoneNumbers()
+	{
+		var phoneElement = document.getElementById('primaryphone');
+		var elementsWithErrors = [phoneElement];
+		
+		if(phoneElement.value === '')
+		{
+			indicateError(elementsWithErrors, "is missing");
+			return false;
+		}
+		else
+		{
+			if(verifyPhoneNumber(0))
+				return true;
+			else
+			{
+				indicateError(elementsWithErrors, "is invalid");
+				return false;
+			}	
+		}	
+	}
+	
+	function verifyRequiredFields(verifyElements, errorElement)
+	{	
+		var bRequiredFieldGood = true
+		var index=0;
+		while(index<verifyElements.length)
+		{
+			if(verifyElements[index].value === '')
+			{
+				bRequiredFieldGood = false;
+				errorMssg= "Error: " + verifyElements[index].title + " is missing or invalid";
+				errorElement.textContent = errorMssg;
+				errorElement.style.color ='red';
+				verifyElements[index].style.backgroundColor = errorColor;
+				break;
+			}
+			else
+			{
+				verifyElements[index++].style.backgroundColor = '#FFFFFF';
+				errorElement.textContent = '';
+			}	
+		}		
+
+		return bRequiredFieldGood;	
+	}
+	
+	function verifyEmail(emailElement)
+	{
+		var email = emailElement.value;
+		
+		emailElement.style.backgroundColor = "#FFFFFF";
+		
+		//check to see they are formed properly
+		if(email.length > 0 && email.includes('.') && email.includes('@'))
+			return true;
+		else
+		{
+			var elementsWithErrors = [emailElement];
+			indicateError(elementsWithErrors, "is missing or not properly formatted");
+			return false;
+		}	
+	}
+	
+	function verifyGroup()
+	{
+		var groupSelectElement = document.getElementById('groupselect');
+  		var groupOtherElement = document.getElementById('groupother');
+  		
+  		if(groupSelectElement.options[groupSelectElement.selectedIndex].value === 'Other' &&
+  			groupOtherElement.value.length === 0)
+  		{	
+  			var elementsWithErrors = [groupOtherElement];
+  			indicateError(elementsWithErrors, "is missing");
+  			return false;
+  		}
+  		else
+  			return true;
+	}
+	
+	function verifyZipCodes(zipElements, errorElement)
+	{	
+		var bRequiredFieldGood = true
+		var index=0;
+		while(index<zipElements.length)
+		{
+			var zipCode = zipElements[index].value;
+			if(zipCode.length === 5 || zipCode.length === 10)
+			{
+				zipElements[index++].style.backgroundColor = '#FFFFFF';
+				errorElement.textContent = '';
+			}
+			else
+			{
+				bRequiredFieldGood = false;
+				errorMssg= "Error: " + zipElements[index].title + " is invalid";
+				errorElement.textContent = errorMssg;
+				errorElement.style.color ='red';
+				zipElements[index].style.backgroundColor = errorColor;
+				break;
+			}
+		}		
+
+		return bRequiredFieldGood;	
+	}
+	
+	function indicateError(elements, error)
+	{
+		var errorElement = document.getElementById('errormessage');
+		var errorMssg= "Error: " + elements[0].title + " " + error;
+		
+		errorElement.textContent = errorMssg;
+		errorElement.style.color = 'red';
+		
+		var index = 0;
+		while(index < elements.length)
+			elements[index++].style.backgroundColor = errorColor;
+	}
+	
+	function submitRegistration()
+	{
+		var verifyNameElements= [document.getElementById('delfn'),
+		                     	 document.getElementById('delln')];
+		
+		var verifyNameAndAddressElements= [document.getElementById('delfn'),
+		  		                     	   document.getElementById('delln'),
+		                                   document.getElementById('delhousenum'),
+		                                   document.getElementById('delstreet'),
+		                                   document.getElementById('delcity')];
+		
+		var emailElement = document.getElementById('delemail');
+		var zipElements = [document.getElementById('delzipcode')];
+		var errorElement = document.getElementById('errormessage');
+		var groupSelectElement = document.getElementById('groupselect');
+		
+		if(groupSelectElement.value === 'Other')
+		{
+			if(verifyRequiredFields(verifyNameAndAddressElements, errorElement) &&
+				verifyZipCodes(zipElements, errorElement) &&
+				 verifyPhoneNumbers() && verifyEmail(emailElement) && 
+				  verifyGroup())
+			{
+				submitSignIn();
+			}
+		}
+		else if(groupSelectElement.value.includes('Chantilly') ||
+				  groupSelectElement.value.includes('Centreville') ||
+				   groupSelectElement.value.includes('Westfield') ||
+				    groupSelectElement.value.includes('FlintHill'))
+		{
+			if(verifyRequiredFields(verifyNameElements, errorElement))
+			{
+				submitSignIn();
+			}
+		}
+		else if(verifyRequiredFields(verifyNameAndAddressElements, errorElement) &&
+				verifyZipCodes(zipElements, errorElement) &&
+				 verifyPhoneNumbers() && verifyEmail(emailElement))
+		{
+			submitSignIn();
+		}
+	}
+	
+	function submitSignIn()
+	{
+		//Post a JSON request with the required information
+		var groupSelectElement = document.getElementById('groupselect');
+		
+		var volunteerparams = "year=" + document.getElementById('year').value
+						+ "&activity=" + document.getElementById('activity').value
+						+ "&delFN=" + document.getElementById('delfn').value
+						+ "&delLN=" + document.getElementById('delln').value
+						+ "&groupother=" + document.getElementById('groupother').value
+						+ "&delemail=" + document.getElementById('delemail').value
+						+ "&group=" + groupSelectElement.options[groupSelectElement.selectedIndex].text
+						+ "&primaryphone=" + document.getElementById('primaryphone').value
+						+ "&delhousenum=" + document.getElementById('delhousenum').value
+						+ "&delunit=" + document.getElementById('delunit').value
+						+ "&delstreet=" + document.getElementById('delstreet').value
+						+ "&delcity=" + document.getElementById('delcity').value
+						+ "&delzipcode=" + document.getElementById('delzipcode').value
+						+ "&comment=" + document.getElementById('comment').value
+						+ "&callback=?";
+		
+    	$.post('signinvolunteer', volunteerparams, function(data, textStatus)
+    	{
+    		clearAllButGroupSelect();
+			document.getElementById('success_mssg').innerHTML = data.message;
+			window.location=document.getElementById('registeredanchor').href;
+    	}, "json");
+	}
+	
+	function clearForm()
+	{
+		
+		document.getElementById('groupselect').selectedIndex = 0;
+		document.getElementById("groupotherlbl").style.visibility = 'hidden';
+  		document.getElementById('groupother').style.visibility = 'hidden';
+  		clearAllButGroupSelect();
+	}
+	
+	function clearAllButGroupSelect()
+	{
+		document.getElementById('delfn').value = "";
+		document.getElementById('delln').value = "";
+		document.getElementById('groupother').value = "";
+		document.getElementById('delemail').value = "";
+		document.getElementById('primaryphone').value = "";
+  		document.getElementById('delhousenum').value = "";
+  		document.getElementById('delstreet').value = "";
+  		document.getElementById('delunit').value = "";
+  		document.getElementById('delcity').value = "";
+  		document.getElementById('delzipcode').value = "";
+  		document.getElementById('comment').value = "";
+  		
+  		document.getElementById('delfn').style.backgroundColor = '#FFFFFF';
+		document.getElementById('delln').style.backgroundColor = '#FFFFFF';
+		document.getElementById('groupother').style.backgroundColor = '#FFFFFF';
+		document.getElementById('delemail').style.backgroundColor = '#FFFFFF';
+		document.getElementById('primaryphone').style.backgroundColor = '#FFFFFF';
+  		document.getElementById('delhousenum').style.backgroundColor = '#FFFFFF';
+  		document.getElementById('delstreet').style.backgroundColor = '#FFFFFF';
+  		document.getElementById('delunit').style.backgroundColor = '#FFFFFF';
+  		document.getElementById('delcity').style.backgroundColor = '#FFFFFF';
+  		document.getElementById('delzipcode').style.backgroundColor = '#FFFFFF';
+	}
+	
+	function onCloseDialog()
+	{
+		window.location=document.getElementById('closepopup').href;
+	}
+	
+  </script>
+  <style>
+	#submitspan {float: right;}
+	#errormessage
+	{
+		float: left;
+		font-weight: bold;
+		font-style: italic;
+		color: black;
+	}
+	#emaillbl, #groupotherlbl
+	{
+		padding-left: 15px;
+	}
+	.inputline
+	{
+		display: block;
+		margin-bottom: 10px;
+	}
+	#contactdiv
+	{
+		display: block;
+		margin-bottom: 10px;
+	}
+	#addressdiv
+	{
+		margin-top: 10px;
+	}
+	#commentdiv
+	{
+		display: none;
+	}
+  </style>
+</head>
+<body>
+<a href="#registereddlg" id="registeredanchor" style="visibility: hidden">Success</a>
+  <div id="topbar" class="topbar">
+    <img src="onclogo" height="55" width="75"/>
+    <p><span id="banner">ONC Warehouse Volunteer Sign-In</span><br>
+	<span id="message">(Please complete and click Sign In)</span></p>
+  </div>
+   <nav>
+    <ul>
+	    <li id="homeli"><a id='homelink'>Home</a></li>
+	</ul>
+	<ul class='floatright'>
+	    <li id="logoutli"><a id='logoutlink'>Logout</a></li>
+	</ul>
+  </nav>
+  <form id='signinform' name='signinform'>  
+  <input id="year" type="hidden" name="year">
+  <input id="activity" type="hidden" name="activity">
+  <br>
+  <fieldset>
+  <legend class="legend-major">Volunteer Information</legend>
+  <div class= 'inputline'>
+    <label for="groupselect">Group or Organization:</label>
+     <select id="groupselect" title="Group" name="group" onchange="onGroupChange()">
+		<option value="Self">Self</option>
+		<option value="CentrevilleNHS">Centreville NHS</option>
+		<option value="CentrevilleSGA">Centreville SGA</option>
+		<option value="ChantillyLAX">Chantilly LAX</option>
+		<option value="ChantillyNHS">Chantilly NHS</option>
+		<option value="ChantillySGA">Chantilly SGA</option>
+		<option value="FlintHillFB">Flint Hill Football</option>
+		<option value="INOVA">INOVA Cardiology</option>
+		<option value="OBCCrutchfield">OBC Crutchfield</option>
+		<option value="Quest">Quest Diagnostics</option>
+		<option value="Salesforce">Salesforce</option>
+		<option value="ScottLong">Scott Long Construction</option>
+		<option value="WestfieldFB">Westfield Football</option>
+		<option value="WestfieldInteract">Westfield Interact</option>
+		<option value="WestfieldKey">Westfield Key Club</option>
+		<option value="WestfieldLAX">Westfield LAX</option>
+		<option value="WestfieldNHS">Westfield NHS</option>
+		<option value="WestfieldSGA">Westfield SGA</option>
+		<option value="Other">Other</option>
+	  </select>
+ 	<label id='groupotherlbl' for="groupother" style="visibility: hidden;">Group Name:</label>
+	<input id="groupother" title="Other group or organizaton name" name="groupother" type="text" size="35" placeholder="Other Group or Organization Name" style="visibility: hidden;">
+	</div>
+  	<div class= 'inputline' >
+      <label for="delfn">Your Name:</label>
+      <input id="delfn" title="First Name" name="delFN" type="text" size="20" placeholder="First Name" onchange ='getContactInfo()'>
+      <input id="delln" title="Last Name" name="delLN" type="text" size="20" placeholder="Last Name" onchange ='getContactInfo()'>
+    </div>
+    <div id= 'contactdiv'>
+      <label id='phonelbl' for="primaryphone"">Cell Phone #:</label>
+      <input id="primaryphone" title="Phone #" name="primaryphone" type="text" size="18" placeholder="Phone #" onchange= 'verifyPhoneNumber(0)'>
+	  <label id='emaillbl' for="delemail">Email:</label>
+	  <input id="delemail" title="Email Address" name="delemail" type="email" size="30" placeholder="email address" autocomplete= "off">
+  	  <div id= 'addressdiv'>
+	    <label for="delhousenum">Address:</label>
+	    <input id="delhousenum" title="House #" name="delhousenum" type="text" size="8" placeholder="House #" autocomplete="off" required>
+      	<input id="delstreet" title="Street Name" name="delstreet" type="text" size="20" placeholder="Street Name" autocomplete="off" required>
+      	<input id="delunit" title="Apt. or Unit #" name="delunit" type="text" size="8" placeholder="Apt #" autocomplete="off">
+      	<input id="delcity" title="City" name="delcity" type='text' size='16' placeholder='City', autocomplete='off'>
+      	<input id="delzipcode" title="Zip Code" name="delzipcode" type='text' size='11', placeholder='Zip Code' autocomplete='off' >
+  	  </div>
+  	</div>  
+  <div id= 'commentdiv'>
+      <label for="commnet">Comment:</label>
+ 	  <input id= 'comment' title='Add Any Comments' name= 'comment' type= 'text' size= '100' placeholder= 'Add a comment' autocomplete= 'off'>
+  </div>
+  </fieldset>
+  <br>
+  <div>
+  	<span id="errormessage"></span>
+  	<span id="submitspan">
+  	  <input id="btnsubmit" type="button" value="Sign In" style="background-color: #336699; color: #ffffff;" title="Click to sign in" onclick= submitRegistration()>
+  	</span>
+  </div>
+ </form>
+ <!-- Success Dialog -->
+  <div id="registereddlg" class="modalDialog">
+	<div id='inner'>
+	<a id='closepopup' href="#close" title="Close" class="close" onclick="onCloseDialog()"></a>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>You're Signed In!</span>
+		</div>
+		<p id='success_mssg'>SUCCESS_MSSG</p>
+    	<div id='buttonbar'>
+      	  <button id="btnsuccess" onclick="onCloseDialog()">Close</button>
+    	</div> 
+	</div>
+  </div>    
+</body>
+</html>

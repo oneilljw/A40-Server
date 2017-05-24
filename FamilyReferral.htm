@@ -1,0 +1,650 @@
+ <!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>ONC Family Assistance Request</title>
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="commonfamily.js"></script>
+  <link rel="stylesheet" type="text/css" href="oncstylesheet.css">
+  <link rel="stylesheet" type="text/css" href="oncdialogstylesheet.css">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script> 
+  	var childrenJson= [];
+  	var adultsJson= [];
+  	var errorColor = '#FF9999';
+  	
+  	//set the date picker to go back 19 years. Max age of a child ONC serves
+  	$(function() {
+  	    $( "#childdob" ).datepicker({
+  	      yearRange: '-19:+0',
+  	      dayNamesMin: [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ],
+  	      changeMonth: true,
+  	      changeYear: true
+  	    });
+  	  });
+  	
+  	$( document ).ready(function()
+	{
+  		//set the hidden values
+  		document.getElementById('year').value= new Date().getFullYear().toString();
+  		document.getElementById('token').value= sessionStorage.getItem("token");
+  		document.getElementById('targetid').value= sessionStorage.getItem("targetid");
+  		
+  		//update the nav bar links with token
+  		document.getElementById('logoutlink').href="logout?token=" + sessionStorage.getItem('token'); 
+  		document.getElementById('homelink').href="startpage?token=" + sessionStorage.getItem('token')
+		 +'&year=' + sessionStorage.getItem('curryear') +'&famref=' + sessionStorage.getItem('famref');
+  		
+  		var urlmode = window.location.href;
+  		if(urlmode.indexOf("referral") > -1)
+  		{
+  			
+  			familyparams = "token=" + sessionStorage.getItem("token") + "&" +
+				"year=" + sessionStorage.getItem("prioryear") + "&" +
+				"targetid=" + sessionStorage.getItem("targetid") + "&" +
+				"callback=?";
+
+			$.getJSON('getfamily', familyparams, function(family)
+			{
+				document.getElementById('hohfn').value= family.HOHFirstName;
+				document.getElementById('hohln').value= family.HOHLastName;
+			});
+			
+  			childrenparams=  "token=" + sessionStorage.getItem("token") + "&" +
+							"year=" + sessionStorage.getItem("prioryear") + "&" +
+							"targetid=" + sessionStorage.getItem("targetid") + "&" +
+							"callback=?";
+  			
+  			$.getJSON('children', childrenparams, function(data)
+  			{
+  		     	childrenJson = data;
+  		     	updateChildTable();
+  		     	updateWishTable();
+  			});
+  		
+  			adultsparams=  "token=" + sessionStorage.getItem("token") + "&" +
+  			"year=" + sessionStorage.getItem("prioryear") + "&" +
+			"targetid=" + sessionStorage.getItem("targetid") + "&" +
+			"callback=?";
+  			
+  			$.getJSON('adults', adultsparams, function(data)
+  			{
+  		     	adultsJson = data;
+  		     	updateAdultTable();
+  			});
+  		}	
+  		
+  		$(function() {
+  		    $("form input").keypress(function (e) {
+  		        if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
+  		            $('button[type=submit] .default').click();
+  		            return false;
+  		        } else {
+  		            return true;
+  		        }
+  		    });
+  		});
+  		
+  		$('html').bind('keypress', function(e)
+  		{
+  			if(e.keyCode == 13)
+  			{
+  				return false;
+  			}
+  		});
+	});	
+	
+	function updateWishTable()
+    {
+    	$("#twishbody").empty();
+    	
+    	for(var i=0; i<childrenJson.length; i++)
+		{
+    		addWishTableRow(i, childrenJson[i]);	//add row to table
+		}
+    }
+	
+	function addWishTableRow(cnum, child)
+    {
+		var childinfo= [child.firstname, getAge(child.sDOB) + " " + child.gender.toLowerCase()];
+		var childfieldsize= [15, 14];
+		var wishplaceholder=["Wish 1", "Wish 2", "Wish 3", "Alt. Wish"];
+        
+	    var tabBody = document.getElementById("wishtable").getElementsByTagName('tbody').item(0);
+        row=document.createElement("tr");
+         
+        for(index=0; index < childinfo.length; index++)	//create the child info cells
+        {
+        	cell= document.createElement("td");
+    	    content= document.createElement("input");
+ 	    	content.type="text";
+        	content.value = childinfo[index];
+        	content.readOnly = true;
+        	content.setAttribute("size", childfieldsize[index]);
+        	cell.appendChild(content);
+        	row.appendChild(cell);
+        }
+
+        for(wn=0; wn<wishplaceholder.length; wn++)
+        {
+        	var wlcell= document.createElement("td");
+        	var wish= document.createElement("input");
+        	wish.type="text";
+        	wish.name="wish" + cnum + wn;
+        	wish.id="wish" + cnum + wn;
+        	wish.disabled = true;
+        	wish.placeholder= wishplaceholder[wn] + " for " + child.firstname;
+        	wish.setAttribute("size", 22);
+        	wlcell.appendChild(wish);
+        	row.appendChild(wlcell);
+        }
+        
+        tabBody.appendChild(row);
+    }
+	
+	function addChild()
+	{
+		var childfnElement = document.getElementById('childfn');
+		var childlnElement = document.getElementById('childln');
+		var childschoolElement = document.getElementById('childschool');
+		
+		var age = calculateAge(document.getElementById('childdob').value);
+		
+		if(childfnElement.value === "")
+			childfnElement.style.background = errorColor;
+		else if(childlnElement.value === "")
+			childlnElement.style.background = errorColor;
+		else if(age > 5 && childschoolElement.value === "")
+			childschoolElement.style.background = errorColor;
+		else
+		{
+       		var child = {};
+        	child["firstname"] = childfnElement.value;
+        	child["lastname"] = childlnElement.value;
+        	child["sDOB"] =	document.getElementById('childdob').value;
+        	child["gender"] = document.getElementById('childgender').value;
+        	child["school"] = document.getElementById('childschool').value;
+        	childrenJson.push(child);
+        
+        	updateChildTable();
+        	updateWishTable();
+        
+        	clearAddChild();
+		}
+	}
+	
+	function clearAddChild()
+	{
+		var childfnElement = document.getElementById('childfn');
+		var childlnElement = document.getElementById('childln');
+		var childschoolElement = document.getElementById('childschool');
+		
+		childfnElement.value="";
+        childlnElement.value="";
+        document.getElementById('childdob').value="";
+        document.getElementById('childgender').value="Boy";
+        document.getElementById('childschool').value="";
+        
+        childfnElement.style.background = '#FFFFFF';
+        childlnElement.style.background = '#FFFFFF';
+        childschoolElement.style.background = '#FFFFFF'; 
+	}
+	
+	function removeChild(index)
+	{
+		childrenJson.splice(index, 1);
+		
+		updateChildTable();
+        updateWishTable();	
+	}
+	
+	function addAdult()
+	{
+		var adultnameElement = document.getElementById('adultname');
+		
+		if(adultnameElement.value === "")
+			adultnameElement.style.background = errorColor;
+		else
+		{	
+       		var adult = {};
+        	adult["name"] = adultnameElement.value;
+        	adult["gender"] = document.getElementById('adultgender').value;
+        	adultsJson.push(adult);
+        
+        	updateAdultTable();
+        
+        	clearAddAdult();
+		}
+	}
+	
+	function clearAddAdult()
+	{
+		var adultnameElement = document.getElementById('adultname');
+		
+		adultnameElement.value="";
+        document.getElementById('adultgender').value="Male";
+        
+        adultnameElement.style.background = '#FFFFFF';
+	}
+	
+	function removeAdult(index)
+	{
+		adultsJson.splice(index, 1);
+		updateAdultTable();
+	}
+	
+	function calculateAge(birthday)
+	{	
+		var curryear = new Date().getFullYear();
+		var xmasday = new Date(curryear,11,25,0,0,0,0);
+		var birthdate= new Date(birthday);
+		
+		if(birthdate >= xmasday)
+		{
+			return 0;
+		}
+		else
+		{
+			var y= [xmasday.getFullYear(), birthdate.getFullYear()],
+	    	ydiff= y[0]-y[1],
+	    	m= [xmasday.getMonth(), birthdate.getMonth()],
+	    	mdiff= m[0]-m[1],
+	    	d= [xmasday.getDate(), birthdate.getDate()],
+	    	ddiff= d[0]-d[1];
+
+	    	if(mdiff < 0 || (mdiff=== 0 && ddiff<0))--ydiff;
+	    	if(mdiff<0) mdiff+= 12;
+	    	if(ddiff<0)
+	    	{
+	        	birthdate.setMonth(m[1]+1, 0);
+	        	ddiff= birthdate.getDate()-d[1]+d[0];
+	        	--mdiff;
+	    	}
+	    	
+	    	if(ydiff > 0)
+	    		return ydiff;
+	    	else 
+	    		return 0;
+		}
+	}
+	
+	function getAge(birthday)
+	{
+		var curryear = new Date().getFullYear();
+		var xmasday = new Date(curryear,11,25,0,0,0,0);
+		var birthdate= new Date(birthday);
+		
+		var age= [];
+		
+		if(birthdate >= xmasday)
+		{
+			age.push('Newborn');
+		}
+		else
+		{
+	    	var y= [xmasday.getFullYear(), birthdate.getFullYear()],
+	    	ydiff= y[0]-y[1],
+	    	m= [xmasday.getMonth(), birthdate.getMonth()],
+	    	mdiff= m[0]-m[1],
+	    	d= [xmasday.getDate(), birthdate.getDate()],
+	    	ddiff= d[0]-d[1];
+
+	    	if(mdiff < 0 || (mdiff=== 0 && ddiff<0))--ydiff;
+	    	if(mdiff<0) mdiff+= 12;
+	    	if(ddiff<0)
+	    	{
+	        	birthdate.setMonth(m[1]+1, 0);
+	        	ddiff= birthdate.getDate()-d[1]+d[0];
+	        	--mdiff;
+	    	}
+	    	
+	    	if(ydiff> 0) age.push(ydiff+ ' yr. old');
+	    	else if(mdiff>= 0) age.push(mdiff+ ' mos. old');
+		}
+	    	return age.join('');
+	}
+	
+	function onGiftAssistanceClicked(cb)
+	{
+		for(var cnum=0; cnum<childrenJson.length; cnum++)
+		{
+			for(var wn=0; wn<4; wn++)
+			{
+				var wishElement = document.getElementById('wish' + cnum + wn);
+				wishElement.value = '';
+				wishElement.disabled = !cb.checked;
+			}	
+		}
+	}
+	
+	function mealRqrdClicked(cb)
+	{
+		var mealCombo = document.getElementById('mealtype');
+		var dietres = document.getElementById('dietres');
+		//clear the meal type combobox
+    	mealCombo.options.length = 0;
+		
+		if(cb.checked == false)
+		{
+			var choices = ["No Assistance Rqrd"];
+			mealCombo.disabled = true;
+			dietres.value="";
+			dietres.disabled = true;
+		}
+		else if(sessionStorage.getItem('thanksgivingCutoff') === 'disabled')
+		{
+			var choices = ["December"];
+			mealCombo.disabled = false;
+			dietres.disabled = false;
+		}
+		else
+		{
+			var choices = ["Thanksgiving", "December"];
+			mealCombo.disabled = false;
+			dietres.disabled = false;	
+		}
+		
+		//add the meal choices
+		for (var i=0; i < choices.length; i++)
+		{
+			var mealOption = document.createElement("option");
+			mealOption.text = choices[i];
+	    	mealOption.value = choices[i];
+	    	try 
+	    	{
+	        	mealCombo.add(mealOption, null); //Standard 
+	    	}
+	    	catch(error)
+	    	{
+	        	mealCombo.add(mealOption); // IE only
+	    	}  
+		}   	
+	}
+
+	
+  </script>
+  <style>
+	.ui-datepicker
+	{
+		width:480px;
+  		background-color: lightskyblue;
+  		font-size:13px;
+	}
+	.ui-datepicker-calendar .ui-state-active  { background: #fff000; }
+	.ui-datepicker thead { background-color: #f7f7f7; }
+	#submitspan {float: right;}
+	#errormessage
+	{
+		float: left;
+		font-weight: bold;
+		font-style: italic;
+		color: red;
+	}
+	table, th, td {border: 1px solid black;}
+	th, td {min-width: 60px; }
+  </style>
+</head>
+<body>
+  <a href="#timeoutdlg" id="timeoutanchor" style="visibility: hidden">Timeout</a>
+  <div id="topbar" class="topbar">
+    <img src="onclogo" height="55" width="75"/>
+    <p><span id="banner">ONC Family Assistance Referral Form</span><br>
+	<span id="message">(please complete and click Submit To ONC)</span></p>
+  </div>
+  <nav>
+    <ul>
+	    <li id="homeli"><a id='homelink'>Home</a></li>
+	</ul>
+	<ul class='floatright'>
+	    <li id="logoutli"><a id='logoutlink'>Logout</a></li>
+	</ul>
+  </nav>
+  <form id="familyreferral" action="referfamily" method="post">
+  <input id='token' type="hidden" name="token">
+  <input id='year' type="hidden" name="year">
+  <input id='targetid' type="hidden" name="targetid">
+  <br>
+  <fieldset>
+  <legend class="legend-major">Head of Household (HOH) Information</legend>
+    <input id='hohfn' title="First Name" name="hohFN" type="text" size="20" placeholder="First Name" required>
+    <input id='hohln' title="Last Name" name="hohLN" type="text" size="20" placeholder="Last Name" required>
+    <input id="homephone" title="Home Phone #" name="homephone" type="text" size="18" placeholder="Primary Phone #" onchange="verifyPhoneNumber(0)" required>
+    <input id= "cellphone" title="Cell Phone #" name="cellphone" type="text" size="18" placeholder="Alternate Phone #" onchange="verifyPhoneNumber(1)">
+    <input id= "altphone" title="Alternate Phone #" name="altphone" type="text" size="18" placeholder="2nd Alt Phone #" onchange="verifyPhoneNumber(2)">
+  	<select title="Primary language" name="language">
+		<option value="English">English</option>
+		<option value="Spanish">Spanish</option>
+		<option value="Arabic">Arabic</option>
+		<option value="Korean">Korean</option>
+		<option value="Vietnamese">Vietnamese</option>
+		<option value="Other">Other</option>
+		<option value="?">Unknown</option>
+	</select>
+	<br>
+	<input id="housenum" title="House #" name="housenum" type="text" size="8" placeholder="House #" onchange="verifyHOHAddress()" autocomplete="off" required>
+    <input id="street" title="Street Name" name="street" type="text" size="20" placeholder="Street Name" onchange="verifyHOHAddress()" autocomplete="off" required>
+    <input id="unit" title="Apt. or Unit #" name="unit" type="text" size="8" placeholder="Apt #" onchange="verifyHOHAddress()" autocomplete="off">
+    <select id="city" title="City" name="city" onchange="cityChanged('city')">
+    	<option value="Centreville">Centreville</option>
+		<option value="Chantilly">Chantilly</option>
+		<option value="Clifton">Clifton</option>
+		<option value="Fairfax">Fairfax</option>
+		<option value="Fairfax Station">Fairfax Station</option>
+		<option value="Sully Station">Sully Station</option>
+		<option value="Alexandria">Alexandria</option>
+		<option value="Annandale">Annandale</option>
+		<option value="Arlington">Arlington</option>
+		<option value="Baileys Crossroads">Baileys Crossroads</option>
+		<option value="Belleview">Belleview</option>
+		<option value="Burke">Burke</option>
+		<option value="Cameron Station">Cameron Station</option>
+		<option value="Dunn Loring">Dunn Loring</option>
+		<option value="Engleside">Engleside</option>
+		<option value="Falls Church">Falls Church</option>
+		<option value="Fort Belvoir">Fort Belvoir</option>
+		<option value="Franconia">Franconia</option>
+		<option value="Great Falls">Great Falls</option>
+		<option value="Greenway">Greenway</option>
+		<option value="Herndon">Herndon</option>
+		<option value="Jefferson Manor">Jefferson Manor</option>
+		<option value="Kingstowne">Kingstowne</option>
+		<option value="Lorton">Lorton</option>
+		<option value="Mason Neck">Mason Neck</option>
+		<option value="McLean">McLean</option>
+		<option value="Merrifield">Merrifield</option>
+		<option value="Mosby">Mosby</option>
+		<option value="Mount Vernon">Mount Vernon</option>
+		<option value="Newington">Newington</option>
+		<option value="North Springfield">North Springfield</option>
+		<option value="Oak Hill">Oak Hill</option>
+		<option value="Oakton">Oakton</option>
+		<option value="Pimmit">Pimmit</option>
+		<option value="Reston">Reston</option>
+		<option value="Seven Corners">Seven Corners</option>
+		<option value="Springfield">Springfield</option>
+		<option value="Tysons Corner">Tysons Corner</option>
+		<option value="Vienna">Vienna</option>
+		<option value="West McLean">West McLean</option>
+		<option value="West Springfield">West Springfield</option>
+	</select>
+    <select id="zipcode" title="Zip Code" name="zipcode" onchange="onZipChanged('zipcode')">
+		<option value="20120">20120</option>
+		<option value="20121">20121</option>
+		<option value="20122">20122</option>
+	</select>
+	<input title="Email address" name="email" type="email" size="30" placeholder="email address">
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Delivery Address & Transportation: Provide address that ONC will use for gift delivery & family's access to transportation</legend>
+	<input type="checkbox" id="sameaddress" title="Uncheck to edit HoH or Delivery address" onclick="sameAddressClicked(this)">Check if same as HOH address above, otherwise complete:
+	<input id="delhousenum" title="Delivery House #" name="delhousenum" type="text" size="8" placeholder="House #" onchange="verifyDeliveryAddress()" autocomplete="off" required>
+    <input id="delstreet" title="Delivery Street Name" name="delstreet" type="text" size="20" placeholder="Street Name" onchange="verifyDeliveryAddress()" autocomplete="off" required>
+    <input id="delunit" title="Deleivery Apt. or Unit #" name="delunit" type="text" size="8" placeholder="Apt #" onchange="verifyDeliveryAddress()" autocomplete="off">
+    <select id="delcity" title="Delivery City" name="delcity" onchange="cityChanged('delcity')">
+    	<option value="Centreville">Centreville</option>
+		<option value="Chantilly">Chantilly</option>
+		<option value="Clifton">Clifton</option>
+		<option value="Fairfax">Fairfax</option>
+		<option value="Fairfax Station">Fairfax Station</option>
+		<option value="Sully Station">Sully Station</option>
+		<option value="Alexandria">Alexandria</option>
+		<option value="Annandale">Annandale</option>
+		<option value="Arlington">Arlington</option>
+		<option value="Baileys Crossroads">Baileys Crossroads</option>
+		<option value="Belleview">Belleview</option>
+		<option value="Burke">Burke</option>
+		<option value="Cameron Station">Cameron Station</option>
+		<option value="Dunn Loring">Dunn Loring</option>
+		<option value="Engleside">Engleside</option>
+		<option value="Falls Church">Falls Church</option>
+		<option value="Fort Belvoir">Fort Belvoir</option>
+		<option value="Franconia">Franconia</option>
+		<option value="Great Falls">Great Falls</option>
+		<option value="Greenway">Greenway</option>
+		<option value="Herndon">Herndon</option>
+		<option value="Jefferson Manor">Jefferson Manor</option>
+		<option value="Kingstowne">Kingstowne</option>
+		<option value="Lorton">Lorton</option>
+		<option value="Mason Neck">Mason Neck</option>
+		<option value="McLean">McLean</option>
+		<option value="Merrifield">Merrifield</option>
+		<option value="Mosby">Mosby</option>
+		<option value="Mount Vernon">Mount Vernon</option>
+		<option value="Newington">Newington</option>
+		<option value="North Springfield">North Springfield</option>
+		<option value="Oak Hill">Oak Hill</option>
+		<option value="Oakton">Oakton</option>
+		<option value="Pimmit">Pimmit</option>
+		<option value="Reston">Reston</option>
+		<option value="Seven Corners">Seven Corners</option>
+		<option value="Springfield">Springfield</option>
+		<option value="Tysons Corner">Tysons Corner</option>
+		<option value="Vienna">Vienna</option>
+		<option value="West McLean">West McLean</option>
+		<option value="West Springfield">West Springfield</option>
+	</select>	
+    <select id="delzipcode" title="Deleivery Zip Code" name="delzipcode" onchange="onZipChanged('delzipcode')">
+		<option value="20120">20120</option>
+		<option value="20121">20121</option>
+		<option value="20122">20122</option>
+	</select>
+  <br><br>
+  <label>Does the family have their own transportation? </label>
+  <input id="transYes" type="radio" name="transportation" value="Yes">Yes
+  <input id="transNo" type="radio" name="transportation" value="No" checked>No
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Family Members</legend>
+  <fieldset class="gray">
+  	<legend>Children in family (ONC will serve children under 18, or 18+ if they are still enrolled in FCPS. Enter Pre-K for children not yet enrolled)</legend>
+  	<input id="childfn" title="First name of child to be added" type="text" size="16" placeholder="First Name">
+    <input id="childln" title="Last name of child to be added" type="text" size="16" placeholder="Last Name">
+    <input id="childdob" title="Date of birth for child to be added" type="text" size="14" placeholder="DoB">
+    <select id="childgender" title="Gender of child to be added">
+		<option value="Boy">Boy</option>
+		<option value="Girl">Girl</option>
+		<option value="Unknown">Unknown</option>
+	</select>
+	<input id="childschool" title="School attended, if none, enter Pre-K" type="text" size="20" placeholder="School">
+	<button type="button" onclick="addChild()" title="Click to add child">Add Child</button>
+	<button type="button" onclick="clearAddChild()" title="Click to clear add child fields">Clear</button>
+  <table id="childtable" border="1">
+  	<thead>
+    	<tr>
+        	<th>First Name</th>
+        	<th>Last Name</th>
+        	<th>DoB</th>
+        	<th>Gender</th>
+        	<th>School</th>
+        	<th>Action</th>
+    	</tr>
+      </thead>
+      <tbody id="tchildbody">
+      </tbody>
+  </table>
+  </fieldset>
+  <br>
+  <fieldset>
+  	<legend>Other adults in family (in addition to the head of household)</legend>
+  	<input id="adultname" title="Name" type="text" size="28" placeholder="First & Last Name">
+    <select id="adultgender" title="Gender">
+		<option value="Male">Male</option>
+		<option value="Female">Female</option>
+		<option value="Unknown">Unknown</option>
+	</select>
+	<button type="button" onclick="addAdult()" title="Click to add adult to family">Add Adult</button>
+	<button type="button" onclick="clearAddAdult()" title="Click to clear adult fields">Clear</button>
+  <table id="adulttable" border="1">
+  	<thead>
+    	<tr>
+        	<th>Name</th>
+        	<th>Gender</th>
+        	<th>Action</th>
+    	</tr>
+    </thead>
+    <tbody id="tadultbody">
+    </tbody>
+</table>
+  </fieldset>
+  </fieldset>
+  <br>
+  <fieldset>
+   <legend class="legend-major">Gift Assistance: Check if family requests gifts and provide 3 wishes per child, in priority order, plus an alternate wish. If clothing or footwear, please include size</legend>
+     <input type="checkbox" name='giftreq' onclick='onGiftAssistanceClicked(this)' title="Check if family wants gift assistance">Check to request gift assistance and complete below:
+  	 <table id="wishtable" border="1">
+  	<thead>
+    	<tr>
+        	<th>First Name</th>
+        	<th>Age/Gender</th>
+        	<th>Wish 1</th>
+        	<th>Wish 2</th>
+        	<th>Wish 3</th>
+        	<th>Alternate Wish</th>	
+    	</tr>
+      </thead>
+      <tbody id="twishbody">
+      </tbody>
+  </table>
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Meal Assistance: ONC will refer family to WFCM or other meal providing organizations</legend>
+	<input type="checkbox" onclick="mealRqrdClicked(this)" title="Check if family needs meal assistance">Check to request meal assistance for:
+    <select id="mealtype" name="mealtype" title="When does the family need meal assistance?" disabled>
+		<option value="No Assistance Rqrd">No Assistance Rqrd</option>
+	</select>
+	<input id="dietres" type="text" name="dietres" size="68" placeholder="Describe any dietary restrictions" title="Describe any family dietary restrictions" disabled>
+  </fieldset>
+  <br>
+  <fieldset>
+   <legend class="legend-major">Family Details: Provide any additional details that may assist in serving this family</legend>
+	<input type="text" name="detail" size="128" placeholder="Details about family ONC should know" title="Provide ONC with information about the family you feel is important">
+  </fieldset>
+  <br>
+  <div>
+  	<span id="errormessage"></span>
+  	<span id="submitspan">
+  	  <label for="submit">Please check that all fields are complete prior to submission: </label>
+  	  <input id="btnsubmit" type="button" value="Submit" style="background-color: #336699; color: #ffffff;" title="Click to sumbit family to ONC" onclick= onSubmit()>
+<!--  <input id="submit" type="submit" value="Submit to ONC" style="background-color: #808080; color: #ffffff;" title="Click to sumbit family to ONC"> -->  
+  	</span>
+  </div>
+</form>
+<!-- Timeout Dialog -->
+  <div id="timeoutdlg" class="modalDialog">
+	<div id='inner'>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Session Timeout</span>
+		</div>
+		<p id='to_mssg'>Your session expired due to inactivity</p>
+    	<div id='buttonbar'>
+      	  <button id="timeoutsubmit" onclick="onSessionTimeout()">Logout</button>
+    	</div> 
+	</div>
+  </div>    
+</body>
+</html>   

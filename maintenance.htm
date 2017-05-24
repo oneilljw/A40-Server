@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <title>Our Neighbor's Child</title>
+    <style>
+    body
+    {
+		height: 0;
+    	padding: 0;
+/*    	padding-bottom: 50%;	*/
+    	background-image: url(oncsplash.gif);
+/*    	background-position: center center;	*/
+    	background-size: 100%;
+    	background-repeat: no-repeat;
+    }
+    label
+    {
+    	width: 5em;
+    	float: left;
+    	text-align: right;
+    	margin-right: 0.5em;
+    	display: block;
+    	color: black;
+    }
+    input
+    {
+    	color: black;
+    	background: #FFFFE4;
+    	border: 1px solid #781351;
+    	width: 15em;
+    }
+    #submit
+    {
+    	display: block;
+    	margin: 0px auto;
+    	color: #000;
+    	background: #ffa20c;
+    	border: 4px outset #d7b9c9
+    } 
+   	fieldset
+    {
+  		border: 4px solid #781351;
+    	color: #00F;
+    	background: #F2F2FA;
+    	width: 26em
+    }
+    legend
+    {
+    	color: black;
+    	background: #ffa20c;
+    	border: 1px solid #781351;
+    	padding: 2px 6px
+    }
+    #inner
+    {
+    	width:300px;
+		height:200px;
+		position:absolute;
+		left:45%;
+		top:60%;
+		margin:-100px 0 0 -150px;
+	}
+    </style>
+</head>
+<body>
+  <div id="outer" style="width:100%">
+	<div id="inner">
+    	<form action="logout" method="post">
+    		<fieldset>
+    			<legend>ONC DMS Offline</legend>
+    			<p align="center"><b><i>Our Data Management System is offline for maintenance</i></b></p>
+    			<p align="center"><b><i>We'll be back online at TIME_BACK_UP</i></b></p>
+    			<p align="center"><b><i>Thank You!</i></b></p>
+    		    <p><input id="submit" type="submit" value="Return to ONC Home Page" /></p>
+    		</fieldset>
+    	</form>
+    </div>
+  </div>
+</body>
+</html>

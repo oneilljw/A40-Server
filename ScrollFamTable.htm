@@ -1,0 +1,824 @@
+ <!DOCTYPE html>
+<html>
+<head lang="en">
+  <title>ONC Family Referral</title>
+  <link rel="stylesheet" type="text/css" href="oncstylesheet.css">
+  <link rel="stylesheet" type="text/css" href="oncdialogstylesheet.css">
+  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script>
+	var currYear;
+	var priorYear;
+	var pyFamJson = [];
+	var cyFamJson = [];
+	
+	sessionStorage.setItem('token', "REPLACE_TOKEN");
+	sessionStorage.setItem('thanksgivingCutoff', "THANKSGIVING_CUTOFF");
+	sessionStorage.setItem('decemberCutoff', "DECEMBER_CUTOFF");
+	sessionStorage.setItem('editCutoff', "EDIT_CUTOFF");
+	sessionStorage.setItem('homelinkVisibility', "HOME_LINK_VISIBILITY");
+	
+    $( document ).ready(function()
+    {
+    	//update the nav bar links with token and set home link presence
+    	if(sessionStorage.getItem('homelinkVisibility') === 'visible')
+    	{
+    		document.getElementById('homelink').href="startpage?token=" + sessionStorage.getItem('token')
+    				+'&year=' + sessionStorage.getItem('curryear')
+    				+'&famref=' + sessionStorage.getItem('famref');
+    		
+    		var profileli = document.getElementById('profileli');
+    		profileli.parentNode.removeChild(profileli);
+    	}
+    	else
+    	{
+    		var homelinkli = document.getElementById('homelinkli');
+    		homelinkli.parentNode.removeChild(homelinkli);
+    	}
+ 
+  		document.getElementById('logoutlink').href="logout?token=" + sessionStorage.getItem('token'); 
+		
+    	//get the list of years from the data base and put it in the year combo box
+    	var dbyearsparams = "token=" + sessionStorage.getItem("token") + "&callback=?";
+    	$.getJSON('dbStatus', dbyearsparams, function(data)
+    	{	
+			currYear = data[data.length-1].id;
+    		document.getElementById('curragtenslbl').innerHTML = currYear.toString() + ' Families Referred By:';
+    		
+    		priorYear = currYear - 1;
+    		sessionStorage.setItem("prioryear", priorYear);
+    		
+			var combo = document.getElementById("dbYears");
+			var yearCombo = document.getElementById("yearlist");
+    		for (var i = data.length-1; i >= 0; i--)
+    			if(data[i].id != currYear)
+    				addComboBoxOption(combo, data[i].id, data[i].id);
+    		
+    		//determine the color and enabling of the Refer New Family button
+    		var btnRNF = document.getElementById('new');
+    		if(sessionStorage.getItem('decemberCutoff') === 'disabled')
+    		{
+    			btnRNF.style.backgroundColor='Gray';
+    	       	btnRNF.disabled = true;
+    		}
+    		
+    		//get the current year groups, agents & families
+    		var groupcb = document.getElementById('currgroups');
+    		var agentcb = document.getElementById('curragents');
+    		getGroupsAgentsAndFamiliesFromServer(currYear, groupcb, agentcb);
+    		
+    		//get the current year groups, agents & families
+    		var groupcb = document.getElementById('pygroups');
+    		var agentcb = document.getElementById('pyagents');
+    		getGroupsAgentsAndFamiliesFromServer(priorYear, groupcb, agentcb);
+    	});
+    	
+    	
+    	// Write on keyup event of keyword prior year seach input element
+        $("#pysearch").keyup(function(){
+            _this = this;
+            // Show only matching TR, hide rest of them
+            $.each($("#pyTable tbody tr"), function() {
+                if($(this).text().toLowerCase().indexOf($(_this).val().toLowerCase()) === -1)
+                   $(this).hide();
+                else
+                   $(this).show();                
+            });
+        });
+    	
+     // Write on keyup event of keyword current year seach input element
+        $("#cysearch").keyup(function(){
+            _this = this;
+            // Show only matching TR, hide rest of them
+            $.each($("#cyTable tbody tr"), function() {
+                if($(this).find('td').eq(2).text().toLowerCase().indexOf($(_this).val().toLowerCase()) === -1)
+                   $(this).hide();
+                else
+                   $(this).show();                
+            });
+        });
+     
+        $.getJSON('getstatus', dbyearsparams, function(status)
+        {
+        	if(status.userstatus === 'Update_Profile')
+            {
+        		showEditProfileDialog();
+        		window.location=document.getElementById('editprofileanchor').href;
+            }
+    	});
+    });
+    
+    function getGroupsAgentsAndFamiliesFromServer(year, groupcb, agentcb)
+    {  	
+    	//get updated agentJson from server and place into group combobox. agentid =-1 defaults
+    	//to the logged in user
+    	var groupparams = "token=" + sessionStorage.getItem("token") + 
+    					  "&agentid=-1" +
+    					  "&callback=?";
+    	
+    	$.getJSON('groups', groupparams, function(data)
+    	{
+    		//clear the group combobox
+        	groupcb.options.length = 0;
+    		
+	    	//add the groups for the agent
+    		for (var i=0; i < data.length; i++)
+    			addComboBoxOption(groupcb, data[i].name, data[i].id);
+	    	
+    		getAgentsAndFamiliesFromServer(agentcb, year, groupcb.value);
+    	});    	
+    }
+    
+    function getAgentsAndFamiliesFromServer(agtcb, year, groupid)
+    {
+    	//clear the agent combobox
+		agtcb.options.length = 0;
+	
+		//get updated agentJson from server and place into combobox
+    	var agentsparams = "token=" + sessionStorage.getItem("token") +
+    					   "&year=" + year +
+    					   "&groupid=" + groupid +
+    					   "&callback=?";
+	
+		$.getJSON('agents', agentsparams, function(data)
+		{
+			//add the "Anyone" option if there is more than one agent object
+			if(data.hasOwnProperty('error'))
+				window.location=document.getElementById('timeoutanchor').href;
+			else if(data.length > 1)
+				addComboBoxOption(agtcb, "Anyone", -1);
+    	
+    		//add the agents for the year
+			for (var i=0; i < data.length; i++)
+				addComboBoxOption(agtcb, data[i].name, data[i].id);
+    		
+    		//get the families
+			getFamiliesFromServer(year, agtcb.value.toString(), groupid);
+		});
+    }
+    
+    function getFamiliesFromServer(year, agentid, groupid)
+    {
+    	familiesparams = "token=" + sessionStorage.getItem("token") +
+			 			 "&year=" + year + 
+			 			 "&agentid=" + agentid +
+			 			 "&groupid=" + groupid + 
+			 			 "&callback=?";
+    	
+    	$.getJSON('families', familiesparams, function(data)
+    	{
+    		if(year === currYear)
+    		{
+    			cyFamJson = data;
+        		updateCYTable();
+    		}
+    		else
+    		{
+    			pyFamJson = data;
+    			updatePYTable();
+    		}
+    	});
+    }
+    
+    function updateGroupsAndFamiliesOnAgentChange(agtcb)
+    {
+    	if(agtcb === document.getElementById("pyagents"))
+    		var groupcb = document.getElementById('pygroups');
+    	else
+    		var groupcb = document.getElementById('currgroups');
+    	
+    	if(agtcb.value > -1)
+    	{
+    		//archive the current group
+    		var priorselgroupid = groupcb.value;
+    		
+    		//get updated groups and families for the agent and year
+        	var groupparams = "token=" + sessionStorage.getItem("token") + 
+        					  "&agentid=" + agtcb.value +
+        					  "&callback=?";
+        	$.getJSON('groups', groupparams, function(data)
+        	{
+        		groupcb.options.length = 0;
+        		
+    	    	//add the groups for the agent
+        		for (var i=0; i < data.length; i++)
+					addComboBoxOption(groupcb, data[i].name, data[i].id);
+    	    	
+        		if(agtcb === document.getElementById("pyagents"))
+            		getFamiliesFromServer(priorYear, agtcb.value, groupcb.value);
+        		else
+            		getFamiliesFromServer(currYear, agtcb.value, groupcb.value);
+        		
+        		//re-select the previously selected group, now in the new group
+            	selectCBOptionByValue(groupcb, priorselgroupid);
+        	});
+    	}
+    	else
+    	{
+    		//agent changed to "anyone" so just get the families, don't change the groups
+    		if(agtcb === document.getElementById("pyagents"))
+        		getFamiliesFromServer(priorYear, agtcb.value, groupcb.value);
+    		else
+        		getFamiliesFromServer(currYear, agtcb.value, groupcb.value);
+    	}	
+    }
+    
+    function updateAgentsOnGroupChange(groupElement)
+    {
+    	if(groupElement === document.getElementById('currgroups'))
+    	{	
+    		var agtcb = document.getElementById('curragents');
+    		var agtYear = currYear;
+    	}
+    	else
+    	{
+    		var agtcb = document.getElementById('pyagents');
+    		var agtYear = sessionStorage.getItem('prioryear');
+    	}
+    	
+    	//archive the current agent and clear the agent combobox
+    	var priorselagentID = agtcb.value;
+    	agtcb.options.length = 0;
+		
+    	//get updated agentJson from server and place into combobox
+    	var agentsparams = "token=" + sessionStorage.getItem("token") +
+    					   "&year=" + agtYear.toString() +
+    					   "&groupid=" + groupElement.value +
+    					   "&callback=?";
+    	
+    	$.getJSON('agents', agentsparams, function(data)
+    	{
+			//add the "Anyone" option if there is more than one agent object
+			if(data.length > 1)
+				addComboBoxOption(agtcb, "Anyone", -1);
+
+	    	//add the agents for the year
+    		for (var i=0; i < data.length; i++)
+				addComboBoxOption(agtcb, data[i].name, data[i].id);
+	    	
+    		//re-select the previously selected agent, now in the new group
+    		//get the families for the agent
+        	selectCBOptionByValue(agtcb, priorselagentID);
+        	getFamiliesFromServer(agtYear, agtcb.value, groupElement.value);
+    	});   		
+    }
+    
+	function addComboBoxOption(combobox, text, value)
+	{
+		var option = document.createElement("option");
+		option.text = text;
+    	option.value = value;
+    	try 
+    	{
+        	combobox.add(option, null); //Standard 
+    	}
+    	catch(error)
+    	{
+        	combobox.add(option); // IE only
+    	}
+	}
+	
+    function updateForYearSelection()
+    {
+    	//get selected year and update session store
+    	var yearCB = document.getElementById("dbYears");
+		var priorYear = yearCB.options[yearCB.selectedIndex].value;
+		sessionStorage.setItem("prioryear", priorYear);
+		
+		//get the groups, agents & families for the prior year selected
+		getGroupsAgentsAndFamiliesFromServer(priorYear, document.getElementById('pygroups'), document.getElementById('pyagents'));
+    }
+    
+    function updatePYTable()
+    {
+    	$("#pytbody").empty();
+    	var e = document.getElementById("pyagents");
+    	var agentID = e.value;
+
+    	var count = 0;
+    	for(var i=0; i<pyFamJson.length; i++)
+		{
+    		if(agentID == -1 || agentID == pyFamJson[i].agentID)
+    		{
+    			addTableRow(pyFamJson[i], document.getElementById('pyTable'), "Refer");	//add row to table
+    			count++;
+    		}
+		}
+    	
+    	//clear the search box
+    	var searchbox = document.getElementById('pysearch');
+    	searchbox.value = "";
+    	
+    	//set the quanity in the table
+    	document.getElementById('pyfamilycount').innerHTML = ': ' + count.toString();
+    }
+    
+    function updateCYTable()
+    {
+    	$("#cytbody").empty();
+    	var e = document.getElementById("curragents");
+    	var agentID = e.options[e.selectedIndex].value;
+    	
+    	var count = 0;
+    	for(var i=0; i<cyFamJson.length; i++)
+		{
+    		if(agentID == -1 || agentID == cyFamJson[i].agentID)
+    		{
+    			addTableRow(cyFamJson[i], cyTable, "Edit");	//add row to table
+    			count++;
+    		}
+		}
+    	
+    	//clear the search box
+    	var searchbox = document.getElementById('cysearch');
+    	searchbox.value = "";
+    	
+    	//set the quanity in the table
+    	document.getElementById('cyfamilycount').innerHTML = ': ' + count.toString();
+    }    
+    
+    function selectCBOptionByValue(cbElement, value)
+    {
+    	var options = cbElement.options;
+    	
+   		var index = 0;
+   		while(index < cbElement.length && options[index].value != value)
+    		index++;
+    		
+    	if(index < cbElement.length)	
+    		cbElement.selectedIndex = index;
+    	else
+    		cbElement.selectedIndex = 0;
+    	
+    	return cbElement.value;
+    }
+    
+    function addTableRow(family, table, buttontext)
+    {
+        if (!document.getElementsByTagName) return;
+        
+        var fstatus;
+        if(family.fstatus === 'Confirmed')
+        	fstatus = 'Confirmed \u2713';
+        else
+        	fstatus = family.fstatus;
+        
+        var dstatus;
+        if(family.giftStatus === 'Delivered')
+        	dstatus = 'Delivered \u2713';
+        else
+        	dstatus = family.giftStatus;
+        	
+        var mealstatus;
+        if(family.mealStatus === 'Thanksgiving_Confirmed')
+        	mealstatus = 'Thanksgiving \u2713';
+        else if(family.mealStatus === 'December_Confirmed')
+        	mealstatus = 'December \u2713';
+        else if(family.mealStatus === 'Both_Confirmed')
+        	mealstatus = 'Both \u2713';
+        else if(family.mealStatus === 'None')
+        	mealstatus = "Not Requested";
+        else if(family.mealStatus === 'Referred')
+        	mealstatus = 'Referred \u2713'
+        else
+        	mealstatus = family.mealStatus;
+        	
+        var familyinfo = [family.oncNum, family.HOHFirstName, family.HOHLastName, family.DNSCode,
+      					  fstatus, dstatus, mealstatus];
+        
+        var cellwidth = ['54px', '170px', '170px', '86px', '136px', '136px', '136px', '54px'];
+        
+	    var tabBody = table.getElementsByTagName('tbody').item(0);
+        row=document.createElement("tr");
+         
+        for(index=0; index < familyinfo.length; index++)	//create the family info cells
+        {
+        	cell = document.createElement("td");
+        	cell.appendChild(document.createTextNode(familyinfo[index]));
+        	cell.style.width = cellwidth[index];
+        	row.appendChild(cell);
+        }
+        
+        btn = document.createElement("button");
+        btn.innerHTML = buttontext;
+        btn.style.width = cellwidth[index];
+        btn.onclick=function() {familyAction(table, family.targetID);};
+        
+		setButtonStatus(family, table, btn);
+        row.appendChild(btn);
+        
+        tabBody.appendChild(row);
+    }
+    
+    function setButtonStatus(family, table, btn)
+    {
+    	if(table=== document.getElementById('pyTable'))
+    	{
+    		if(alreadyReferred(family.targetID) === true)
+            {
+            	btn.style.backgroundColor='Red';
+            	btn.disabled = true;
+            }
+            else if(sessionStorage.getItem('decemberCutoff') === 'disabled')
+            {
+            	btn.style.backgroundColor='Gray';
+            	btn.disabled = true;
+            }
+    	}
+    	else if(sessionStorage.getItem('editCutoff') === 'disabled')
+        {
+            btn.style.backgroundColor='Gray';
+            btn.disabled = true;
+    	}
+    }
+
+    function familyAction(table, targetID)
+    {
+    	sessionStorage.setItem("targetid", targetID);
+		var params = {}
+		
+		params["token"] = sessionStorage.getItem('token');
+		params["targetid"] = targetID;
+		
+		if(table=== document.getElementById('pyTable'))
+		{
+			params["year"] = priorYear.toString();
+			post('referral', params);
+		}
+		else
+		{
+			params["year"] = currYear.toString();
+			post('familyupdate', params);
+		}
+    }
+    
+    function newFamily()
+    {
+    	sessionStorage.setItem("targetid", "NNA");
+		sessionStorage.setItem("prioryear", currYear-1);
+    	
+    	var params = {}
+		params["token"] = sessionStorage.getItem('token');
+		
+		post('newfamily', params);
+    }
+    
+    function alreadyReferred(targetID)
+    {
+    	var index = 0;
+    	while(index < cyFamJson.length && cyFamJson[index].targetID != targetID)
+    	    index++;
+    	
+    	if(index < cyFamJson.length)
+    		return true;
+    	else
+    	    return false;
+    }
+    
+    function showEditProfileDialog() 
+    {
+    	var params = "token=" + sessionStorage.getItem("token") + "&" + "callback=?";
+			
+    	$.getJSON('getuser', params, function(user)
+    	{
+    		userJson = user;
+    		if(userJson.hasOwnProperty('error'))
+      		{
+				window.location=document.getElementById('timeoutanchor').href;
+      		}
+    		else if(userJson.lastname !== '')
+    		{
+    			document.getElementById('userfirstname').value = user.firstname;
+    	    	document.getElementById('userlastname').value = user.lastname;
+    	    	document.getElementById('userorg').value = user.org;
+    	    	document.getElementById('usertitle').value = user.title;
+    	    	document.getElementById('useremail').value = user.email;
+    	    	document.getElementById('userphone').value = user.phone;
+    		}
+    	});
+    }
+    
+    function onChangePW() 
+    {
+    	if(validate())
+    	{
+			var params = {}	
+			params["token"] = sessionStorage.getItem('token');
+			params["field1"] = document.getElementById('currpw').value;
+			params["field2"] = document.getElementById('newpw').value;
+    		$.post('reqchangepw', params, function(response)
+    		{
+    			document.getElementById('message').textContent= response;
+    		});
+    		
+    		document.getElementById('currpw').value = "";
+	    	document.getElementById('newpw').value = "";
+	    	document.getElementById('verifypw').value = "";
+    		window.location=document.getElementById('closepopup').href;
+    	}
+    }
+    
+    function onUpdateProfile()
+    {
+    	if(document.getElementById('userfirstname').value !== userJson.firstname ||
+    		document.getElementById('userlastname').value !== userJson.lastname ||
+    		 document.getElementById('userorg').value !== userJson.org ||
+    		  document.getElementById('usertitle').value !== userJson.title ||
+    		   document.getElementById('useremail').value !== userJson.email ||
+    		    document.getElementById('userphone').value !== userJson.phone)
+    	{
+    		var params = "token=" + sessionStorage.getItem("token")
+			+ "&" + "firstname=" + document.getElementById('userfirstname').value
+			+ "&" + "lastname=" + document.getElementById('userlastname').value
+			+ "&" + "org=" + document.getElementById('userorg').value
+			+ "&" + "title=" + document.getElementById('usertitle').value
+			+ "&" + "email=" + document.getElementById('useremail').value
+			+ "&" + "phone=" + document.getElementById('userphone').value
+			+ "&" + "callback=?"
+		
+			$.getJSON('updateuser', params, function(mssgJson)
+			{
+				document.getElementById('message').textContent= mssgJson.message;
+			});
+		    		
+		    window.location=document.getElementById('closepopup').href;
+		}
+		else
+		{
+		    onProfileNotChanged();
+		}
+    }
+    
+    function onProfileNotChanged()
+    {
+		var params = {}	
+		params["token"] = sessionStorage.getItem('token');
+		$.post('profileunchanged', params, function(response)
+		{
+			document.getElementById('message').textContent= response.message;
+		}, "jsonp");
+		
+		window.location=document.getElementById('closepopup').href;
+    }
+    
+    function onCancel()
+    {
+		window.location=document.getElementById('closepopup').href;
+    }
+	
+	function validate()
+    {
+		var mssgEl = document.getElementById("pw_mssg");
+    	var currpwEl = document.getElementById("currpw");
+        var pass1El = document.getElementById("newpw");
+        var pass2El = document.getElementById("verifypw");
+        var ok = true;
+        
+        if(currpwEl.value == "")
+        {
+        	//alert("current password field empty");
+            currpwEl.style.borderColor = "#E34234";
+            
+            mssgEl.style.color = "Red";
+            mssgEl.textContent = "Current password not provided, please try again!";
+            ok = false;
+        }
+        else if(pass1El.value !== pass2El.value)
+        {
+            //alert("New and Verify Passwords do not match");
+            pass1El.style.borderColor = "#E34234";
+            pass2El.style.borderColor = "#E34234";
+            
+            mssgEl.style.color = "Red";
+            mssgEl.textContent = "New and Verify passwords don't match, please try again!";
+            ok = false;
+        }
+
+        return ok;
+    }
+	
+	function onSessionTimeout()
+	{
+		 window.location.assign('timeout');
+	}
+    
+	function post(path, params, method) 
+	{
+	    method = method || "post"; // Set method to post by default if not specified.
+
+	    // The rest of this code assumes you are not using a library.
+	    // It can be made less wordy if you use one.
+	    var form = document.createElement("form");
+	    form.setAttribute("method", method);
+	    form.setAttribute("action", path);
+
+	    for(var key in params) 
+	    {
+	    	if(params.hasOwnProperty(key))
+	        {
+	            var hiddenField = document.createElement("input");
+	            hiddenField.setAttribute("type", "hidden");
+	            hiddenField.setAttribute("name", key);
+	            hiddenField.setAttribute("value", params[key]);
+
+	        	form.appendChild(hiddenField);
+	        }
+	    }
+
+	    document.body.appendChild(form);
+	    form.submit();
+	}
+    </script>
+    <style type="text/css">         
+    	.constrainer 
+        {
+         	width: 90%;
+			margin-left: auto;
+			margin-right: auto;
+            background-color: #3CB371;
+            border: 1px solid black;
+        }
+        .constrainer table { overflow-y: scroll; }
+        .constrainer thead { display: table-row; }
+        .constrainer tbody
+        {
+            overflow-x: scroll;
+            display: block;
+            height: 208px;
+        }
+
+        .onccol { width: 54px; }
+        .namecol { width: 170px; }
+        .dnscol { width: 86px; }
+        .statcol { width: 136px; }
+        
+        /* only styling below here */
+        table { border-collapse: collapse; }       
+        th, td { border: 1px solid gray; }
+        th 
+        {
+            background-color: lightgrey;
+            border-width: 1px;
+        }
+        td { border-width: 1px; }
+        tr:first-child td { border-top-width: 0; }
+        tr:nth-child(odd) { background-color: #ffffff; }
+        tr:nth-child(even) { background-color: lightgrey; } 
+        .controlbar
+		{
+			width:90%;
+			margin:0 auto;
+			background-color: #3CB371;
+			border: 1px solid black;
+		}
+		#newbar { text-align: right; }
+    </style>
+</head>
+<body>
+  <a href="#editProfile" id="editprofileanchor" style="visibility: hidden">Edit Profile</a>
+  <a href="#timeoutdlg" id="timeoutanchor" style="visibility: hidden">Timeout</a>
+  <div id="topbar" class="topbar">
+    <img src="onclogo" height="55" width="75"/>
+	<p><span id="banner">USER_NAME, welcome to Our Neighbor's Child Family Referral System</span><br>
+	<span id="message">USER_MESSAGE</span></p>
+  </div>
+  <nav>
+   <ul>
+	    <li id="homelinkli"><a id='homelink'>Home</a></li>
+	</ul>
+	<ul class='floatright'>
+		<li id='profileli'><a href="#">Profile <span class="caret"></span></a>
+		  <div>
+		    <ul>
+			  <li><a href="#editProfile" onclick='showEditProfileDialog()'>Edit Profile</a></li>
+			  <li><a href="#chgpwdlg">Change Password</a></li>
+		    </ul>
+		  </div>
+	  </li>
+	    <li id="logoutli"><a id='logoutlink'>Logout</a></li>
+	</ul>
+  </nav>
+  <div class='controlbar'>
+		<select id="dbYears" name="dbYear" onchange="updateForYearSelection()" ></select>
+		<label for="pyagents">Families Referred By</label>
+		<select id="pyagents"  onchange="updateGroupsAndFamiliesOnAgentChange(this)" name="pyagtID"></select>
+		<label id= pygroupslbl for="pygroups">in Group:</label>
+		<select id="pygroups" onchange="updateAgentsOnGroupChange(this)" name="pyGroupID"></select>
+		<label id="pyfamilycount" for="pygroups"> : 0</label>
+		<span class='floatright'>
+		  <label for="pysearch">Search For:</label>
+		  <input type="text" id="pysearch" placeholder="Type to search..." />
+		</span>
+  </div>
+  <div class="constrainer">
+	<table id="pyTable">
+      <thead>
+        <tr>
+       		<th class='onccol'>ONC #</th>
+       		<th class='namecol'>First Name</th>
+       		<th class='namecol'>Last Name</th>
+       		<th class='dnscol'>DNS Code</th>
+        	<th class='statcol'>Family Status</th>
+        	<th class='statcol'>Gift Status</th>
+        	<th class='statcol'>Meal Status</th>
+        	<th class='onccol'>Action</th>
+        </tr>
+      </thead>
+      <tbody id='pytbody'>
+      </tbody>
+	</table>
+  </div>
+  <div id='newbar' class='controlbar'>
+    <button id="new" onclick="newFamily()">Refer New Family</button>
+  </div>
+  <br><br>
+  <div class='controlbar'>
+	<label id= curragtenslbl for="curragents">xxxx Families Referred By</label>
+	<select id="curragents"  onchange="updateGroupsAndFamiliesOnAgentChange(this)" name="curragtID"></select>
+	<label id= currgroupslbl for="currgroups">in Group:</label>
+	<select id="currgroups" onchange="updateAgentsOnGroupChange(this)"name="currGroupID"></select>
+	<label id="cyfamilycount" for="currgroups"> : 0</label>
+	<span class='floatright'>
+	  <label for="cysearch">Search For:</label>
+	  <input type="text" id="cysearch" placeholder="Type to search..." />
+	</span>
+  </div>
+  <div class="constrainer">
+    <table id= 'cyTable'>
+      <thead>
+        <tr>
+       		<th class='onccol'>ONC #</th>
+       		<th class='namecol'>First Name</th>
+       		<th class='namecol'>Last Name</th>
+       		<th class='dnscol'>DNS Code</th>
+        	<th class='statcol'>Family Status</th>
+        	<th class='statcol'>Gift Status</th>
+        	<th class='statcol'>Meal Status</th>
+        	<th class='onccol'>Action</th>
+        </tr>
+      </thead>
+      <tbody id='cytbody'>
+      </tbody>
+	</table>
+  </div>
+  <!-- Edit Profile Dialog -->
+  <div id="editProfile" class="modalDialog">
+	<div id='inner'>
+		<a id='closepopup' href="#close" title="Close" class="close" onclick="onProfileNotChanged()">X</a>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Update ONC Profile</span>
+		</div>
+    	<p><label class='lbl_ep' for="userfirstname">First Name:</label>
+    	<input class='inp_ep' type="text" id="userfirstname" name="firstname" autofocus></p>
+    	<p><label class='lbl_ep' for="userlastname">Last Name:</label>
+    	<input class='inp_ep' type="text" id="userlastname" name="lastname"><br></p>
+    	<p><label class='lbl_ep' for="userorg" >Organization:</label>
+    	<input class='inp_ep' type="text" id="userorg" name="org"></p>
+    	<p><label class='lbl_ep' for="usertitle">Title:</label>
+    	<input class='inp_ep' type="text" id="usertitle" name="title"><br></p>
+    	<p><label class='lbl_ep' for="useremail">E-Mail:</label>
+    	<input class='inp_ep' type="text" id="useremail" name="email"></p>
+    	<p><label class='lbl_ep' for="userphone">Phone:</label>
+    	<input class='inp_ep' type="text" id="userphone" name="phone"><br></p>
+    	<div id='buttonbar'>
+      	  <button id="cancel" onclick="onProfileNotChanged()">Cancel</button>
+      	  <button id="update" onclick="onUpdateProfile()">Update</button>
+    	</div> 
+	</div>
+  </div>
+<!-- Change Password Dialog -->
+  <div id="chgpwdlg" class="modalDialog">
+	<div id='inner'>
+		<a id='closepopup' href="#close" title="Close" class="close">X</a>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Change Password</span>
+		</div>
+		<p id='pw_mssg'>Enter current and new password:</p>
+    	<p><label class='lbl_pw' for="currpw">Current Password:</label>
+    	<input class='inp_pw' type="password" id="currpw" name="field1" autofocus></p>
+    	<p><label class='lbl_pw'for="newpw">New Password:</label>
+    	<input class='inp_pw' type="password" id="newpw" name="field2"><br></p>
+    	<p><label class='lbl_pw'for="verifypw" >Verify Password:</label>
+    	<input class='inp_pw' type="password" id="verifypw" name="field3"></p>
+    	<div id='buttonbar'>
+      	  <button id="cancel" onclick="onCancel()">Cancel</button>
+      	  <button id="submit" onclick="onChangePW()">Change Password</button>
+    	</div> 
+	</div>
+  </div>
+  <!-- Timeout Dialog -->
+  <div id="timeoutdlg" class="modalDialog">
+	<div id='inner'>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Session Timeout</span>
+		</div>
+		<p id='to_mssg'>Your session expired due to inactivity</p>
+    	<div id='buttonbar'>
+      	  <button id="submit" onclick="onSessionTimeout()">Logout</button>
+    	</div> 
+	</div>
+  </div>
+</body>
+</html>

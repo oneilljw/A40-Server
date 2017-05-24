@@ -1,0 +1,1147 @@
+ <!DOCTYPE html>
+<html>
+<head lang="en">
+  <title>ONC Elf Main Page</title>
+  <link rel="stylesheet" type="text/css" href="oncstylesheet.css">
+  <link rel="stylesheet" type="text/css" href="oncdialogstylesheet.css">
+  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script>
+	var currYear;
+	var currFamRef;
+	var familyRefs = {};
+	var searchRefs = {};
+	var famJson = {};
+	var agtJson;
+	var childrenJson = {};
+	var wishJson = {};
+	var famIndex = 0;
+	var searchIndex = 0;
+	var adultsJson= [];
+	var userJson= {};
+	
+	sessionStorage.setItem('token', "REPLACE_TOKEN");
+	sessionStorage.setItem('curryear', "REPLACE_YEAR");
+	sessionStorage.setItem('famref', "REPLACE_FAM_REF");
+	
+    $( document ).ready(function()
+    {
+		//set the search buttons to hidden
+		document.getElementById('srch-prior').style.visibility = 'hidden';
+		document.getElementById('srch-next').style.visibility = 'hidden';
+		
+    	//get the list of years from the data base and put it in the year combo box
+    	var dbyearsparams = "token=" + sessionStorage.getItem("token") + "&callback=?";
+    	$.getJSON('dbStatus', dbyearsparams, function(data)
+    	{
+			var yearCombo = document.getElementById('yearlist');
+    		for (var i = data.length-1; i >= 0; i--)
+    		{
+    			var option = document.createElement('option');
+    			option.text = data[i].id;
+    	    	option.value = data[i].id;
+
+    	    	try 
+	    		{
+	        		yearCombo.add(option, null); //Standard 
+	    		} 
+	    		catch(error) 
+	    		{
+	        		yearCombo.add(option); // IE only
+	    		}
+    		}
+
+    		document.getElementById('yearlist').value= sessionStorage.getItem('curryear');
+    		getFamilyReferencesFromServer(sessionStorage.getItem('curryear'));
+    	});
+    	
+    	$("#search").keyup(function (e) {
+    	    if(e.keyCode == 13) 
+    	    {
+    	        onSearch();
+    	    }
+    	});
+    	
+    	// CLEARABLE INPUT
+    	$(document).on('input', '.clearable', function()
+    	{
+    	    $(this)[tog(this.value)]('x');    	    
+    	}).on('mousemove', '.x', function( e ){
+    	    $(this)[tog(this.offsetWidth-18 < e.clientX-this.getBoundingClientRect().left)]('onX');
+    	}).on('touchstart click', '.onX', function( ev ){
+    	    ev.preventDefault();
+    	    onClearSearch();
+    	    $(this).removeClass('x onX').val('').change();   	    
+    	});
+    	
+    	$.getJSON('getstatus', dbyearsparams, function(status)
+    	{
+    		if(status.userstatus === 'Update_Profile')
+    		{
+				showEditProfileDialog();
+				window.location=document.getElementById('editprofileanchor').href;
+    		}
+    	});
+    });
+    
+    function tog(v)
+    {
+    	return v?'addClass':'removeClass';
+    }
+
+    function showEditProfileDialog() 
+    {
+    	var params = "token=" + sessionStorage.getItem("token") + "&" + "callback=?";
+			
+    	$.getJSON('getuser', params, function(user)
+    	{
+    		userJson = user;
+    		if(userJson.hasOwnProperty('error'))
+      		{
+				window.location=document.getElementById('timeoutanchor').href;
+      		}
+    		else if(userJson.lastname !== '')
+    		{
+    			document.getElementById('userfirstname').value = user.firstname;
+    	    	document.getElementById('userlastname').value = user.lastname;
+    	    	document.getElementById('userorg').value = user.org;
+    	    	document.getElementById('usertitle').value = user.title;
+    	    	document.getElementById('useremail').value = user.email;
+    	    	document.getElementById('userphone').value = user.phone;
+    		}
+    	});
+    }
+    
+    function onChangePW() 
+    {
+    	if(validate())
+    	{
+			var params = {}	
+			params["token"] = sessionStorage.getItem('token');
+			params["field1"] = document.getElementById('currpw').value;
+			params["field2"] = document.getElementById('newpw').value;
+    		$.post('reqchangepw', params, function(response)
+    		{
+    			document.getElementById('message').textContent= response;
+    		});
+    		
+    		document.getElementById('currpw').value = "";
+	    	document.getElementById('newpw').value = "";
+	    	document.getElementById('verifypw').value = "";
+    		window.location=document.getElementById('closepopup').href;
+    	}
+    }
+    
+    function onUpdateProfile()
+    {
+    	if(document.getElementById('userfirstname').value !== userJson.firstname ||
+    		document.getElementById('userlastname').value !== userJson.lastname ||
+    		 document.getElementById('userorg').value !== userJson.org ||
+    		  document.getElementById('usertitle').value !== userJson.title ||
+    		   document.getElementById('useremail').value !== userJson.email ||
+    		    document.getElementById('userphone').value !== userJson.phone)
+    	{
+    		var params = "token=" + sessionStorage.getItem("token")
+			+ "&" + "firstname=" + document.getElementById('userfirstname').value
+			+ "&" + "lastname=" + document.getElementById('userlastname').value
+			+ "&" + "org=" + document.getElementById('userorg').value
+			+ "&" + "title=" + document.getElementById('usertitle').value
+			+ "&" + "email=" + document.getElementById('useremail').value
+			+ "&" + "phone=" + document.getElementById('userphone').value
+			+ "&" + "callback=?"
+		
+			$.getJSON('updateuser', params, function(mssgJson)
+			{
+				document.getElementById('message').textContent= mssgJson.message;
+			});
+    		
+    		window.location=document.getElementById('closepopup').href;
+    	}
+    	else
+    	{
+    		onProfileNotChanged();
+    	}
+    }
+    
+    function getFamilyReferencesFromServer(year)
+    {
+    	familyparams = "token=" + sessionStorage.getItem("token") +
+    	"&year=" + year + "&callback=?";
+    	$.getJSON('references', familyparams, function(data)
+    	{
+    		familyRefs = data;
+    		if(familyRefs.hasOwnProperty('error'))
+      		{
+				window.location=document.getElementById('timeoutanchor').href;
+      		}
+    		else if(familyRefs.length=== 0)
+    		{
+    			famIndex=0;
+    			clearPageData();
+    		}
+    		else if(sessionStorage.getItem('famref')=== 'NNA')
+    		{
+    			famIndex= 0;
+    			getFamilyFromServer(year, familyRefs[0].id);
+    		}
+    		else
+    		{
+    			findFamilyIndexAndGetFamily(year, sessionStorage.getItem('famref'))
+    		}
+    		
+    		var resultEl = document.getElementById('resultbar');
+			resultEl.textContent = "Families: " + familyRefs.length.toString();
+    	});
+    }
+    
+    function searchForFamilyReferencesFromServer(year, searchstring)
+    {
+    	searchparams = "token=" + sessionStorage.getItem("token") +
+    	"&year=" + year + "&searchstring=" + searchstring + "&callback=?";
+    	$.getJSON('familysearch', searchparams, function(data)
+    	{
+    		searchRefs = data;
+    		if(searchRefs.hasOwnProperty('error'))
+      		{
+				window.location=document.getElementById('timeoutanchor').href;
+      		}
+    		else if(searchRefs.length > 0)
+    		{
+    			//find the first family reference and fetch it
+    			findFamilyIndexAndGetFamily(year, searchRefs[0].id)
+    			
+    			//if more than one family reference was found, show buttons
+    			if(searchRefs.length === 1)
+    			{
+    				document.getElementById('srch-prior').style.visibility = 'hidden';
+    				document.getElementById('srch-next').style.visibility = 'hidden';
+    			}
+    			else
+    			{
+    				document.getElementById('srch-prior').style.visibility = 'visible';
+    				document.getElementById('srch-next').style.visibility = 'visible';
+    			}
+    		}
+    		
+    		var resultEl = document.getElementById('resultbar');
+			resultEl.textContent = "Families: " + familyRefs.length.toString() + ", Families Found: " + searchRefs.length.toString();
+    	});
+    }
+    
+    function findFamilyIndexAndGetFamily(year, searchref)
+    {
+		var index=0;
+		while(familyRefs[index].id !== searchref)
+		{
+			index++;
+		}
+		
+		if(index < familyRefs.length)
+		{
+			famIndex = index;
+			getFamilyFromServer(year, familyRefs[index].id)
+		}
+    }
+    
+    function getFamilyFromServer(year, id)
+    {
+    	familyparams = "token=" + sessionStorage.getItem("token") +
+    	"&year=" + year +
+    	"&targetid=" + id + "&callback=?";
+    	$.getJSON('getfamily', familyparams, function(data)
+    	{
+    		famJson = data;
+    		if(famJson.hasOwnProperty('error'))
+      		{
+				window.location=document.getElementById('timeoutanchor').href;
+      		}
+    		else
+    		{	
+    			document.getElementById('onc').value= famJson.oncNum;
+				document.getElementById('ref').value= famJson.targetID;
+				document.getElementById('batch').value= famJson.BatchNum;
+				document.getElementById('dns').value= famJson.DNSCode;
+    			document.getElementById('hohfn').value= famJson.HOHFirstName;
+				document.getElementById('hohln').value= famJson.HOHLastName;
+				document.getElementById('famstat').value= famJson.fstatus;
+				document.getElementById('delstat').value= famJson.giftStatus;
+				document.getElementById('mealstat').value= famJson.mealStatus;
+				document.getElementById('language').value= famJson.Language;
+				document.getElementById('homephone').value= famJson.HomePhone;
+				document.getElementById('cellphone').value= famJson.OtherPhone;
+				document.getElementById('email').value= famJson.FamilyEmail;
+				document.getElementById('housenum').value= famJson.HouseNum;
+				document.getElementById('street').value= famJson.Street;
+				document.getElementById('unit').value= famJson.UnitNum;
+				document.getElementById('city').value= famJson.City;
+				document.getElementById('zipcode').value= famJson.ZipCode;
+				document.getElementById('region').value= famJson.Region;
+				document.getElementById('transport').value= famJson.transportation;
+				document.getElementById('detail').value= famJson.details;
+				document.getElementById('notes').value= famJson.notes;
+				document.getElementById('delInstr').value= famJson.delInstr;
+			
+				var deliveryAddr = famJson.substituteDeliveryAddress.split('_');
+	  			var delAddrElements = ['delhousenum', 'delstreet', 'delunit', 'delcity', 'delzipcode'];
+	  			if(deliveryAddr.length === delAddrElements.length)	//delivery address is different
+	  			{
+	  				for(var i=0; i<deliveryAddr.length; i++)
+	  					document.getElementById(delAddrElements[i]).value = deliveryAddr[i];
+	  			}
+	  			else	//address is the same
+	  			{
+	  				var hohAddrParts = [famJson.HouseNum, famJson.Street, famJson.UnitNum, famJson.City, famJson.ZipCode];
+	  				for(var i=0; i<hohAddrParts.length; i++)	
+	  					document.getElementById(delAddrElements[i]).value = hohAddrParts[i];
+	  			}
+	  			
+				getAgentFromServer(year, famJson.agentID);
+				getFamiliesChildrenFromServer(year, famJson.targetID);
+				getAdultsFromServer(year, famJson.targetID);
+				getMealFromServer(year, famJson.mealID);
+			
+				if(famJson.DNSCode !== '')
+					document.getElementById('faminfofs').style.backgroundColor = "#FF3333";
+				else if(famJson.bGiftCardOnly === true)
+					document.getElementById('faminfofs').style.backgroundColor = "#00FF00";
+				else
+					document.getElementById('faminfofs').style.backgroundColor = "#E8E8E8";
+			
+				sessionStorage.setItem("famref", id);
+    		}
+    	});
+    }
+    
+    function clearPageData()
+    {
+    	document.getElementById('onc').value= '';
+		document.getElementById('ref').value= '';
+		document.getElementById('batch').value= '';
+		document.getElementById('dns').value= '';
+		document.getElementById('hohfn').value= '';
+		document.getElementById('hohln').value= '';
+		document.getElementById('famstat').value= '';
+		document.getElementById('delstat').value= '';
+		document.getElementById('mealstat').value= '';
+		document.getElementById('language').value= '';
+		document.getElementById('homephone').value= '';
+		document.getElementById('cellphone').value= '';
+		document.getElementById('email').value= '';
+		document.getElementById('housenum').value= '';
+		document.getElementById('street').value= '';
+		document.getElementById('unit').value= '';
+		document.getElementById('city').value= '';
+		document.getElementById('zipcode').value= '';
+		document.getElementById('region').value= '';
+		document.getElementById('transport').value= '';
+		document.getElementById('detail').value= '';
+		document.getElementById('notes').value= '';
+		document.getElementById('delInstr').value= '';
+		
+		document.getElementById('delhousenum').value = '';
+		document.getElementById('delstreet').value= '';
+		document.getElementById('delunit').value= '';
+		document.getElementById('delcity').value= '';
+		document.getElementById('delzipcode').value= '';
+		
+		document.getElementById('agentname').value= '';
+		document.getElementById('agentorg').value= '';
+		document.getElementById('agenttitle').value= '';
+		document.getElementById('agentphone').value= '';
+		document.getElementById('agentemail').value= '';
+		
+		$("#tchildbody").empty();
+		$("#adultbody").empty();
+		
+		removeOptions(document.getElementById("childfn"));
+		document.getElementById('age').value= '';
+		
+		$("#twishbody").empty();
+		
+		document.getElementById('mealtype').value = '';
+	  	document.getElementById('dietres').value = '';
+	  	
+	  	document.getElementById('faminfofs').style.backgroundColor = "#E8E8E8";
+    }
+    
+    function getAdultsFromServer(year, targetid)
+    {
+    	adultsparams=  "token=" + sessionStorage.getItem("token") + "&" +
+			"year=" + year + "&" + "targetid=" + targetid + "&" + "callback=?";
+			
+		$.getJSON('adults', adultsparams, function(data)
+		{
+	    	adultsJson = data;
+	     	updateAdultTable();
+		});
+    }
+    
+    function getMealFromServer(year, mealid)
+    {
+    	//get meal and update if family meal id > 1
+	    if(mealid > -1)
+		{
+	     	var mealparams = "token=" + sessionStorage.getItem("token") + "&" +
+	     						"year=" + year + "&" +
+	     						"mealid=" + mealid + "&" +
+	     						"callback=?";	
+	     					
+	     	$.getJSON('getmeal', mealparams, function(meal)
+	     	{
+	       		document.getElementById('mealtype').value = meal.type;
+	   	  		document.getElementById('dietres').value = meal.dietaryRestrictions;
+	   		});
+    	}
+	    else
+	    {
+	   		document.getElementById('mealstat').value = "None Requested";
+	   		document.getElementById('mealtype').value = "None";
+    		document.getElementById('dietres').value = "";
+    	}   		
+    }
+    
+    function getAgentFromServer(year, agtid)
+    {
+    	agentparams = "token=" + sessionStorage.getItem("token") +
+    	"&year=" + year +
+    	"&agentid=" + agtid + "&callback=?";
+    	$.getJSON('getagent', agentparams, function(data)
+    	{
+    		agtJson = data;
+    		document.getElementById('agentname').value= agtJson.name;
+			document.getElementById('agentorg').value= agtJson.org;
+			document.getElementById('agenttitle').value= agtJson.title;
+    		document.getElementById('agentphone').value= agtJson.phone;
+			document.getElementById('agentemail').value= agtJson.email;
+    	});
+    }
+    
+    function getFamiliesChildrenFromServer(year, targetid)
+    {
+    	childrenparams=  "token=" + sessionStorage.getItem("token") + "&" +
+		"year=" + year + "&" +
+		"targetid=" + targetid + "&" +
+		"callback=?";
+
+		$.getJSON('children', childrenparams, function(data)
+		{
+			childrenJson = data;
+			updateChildTable();
+			if(childrenJson.length > 0)
+			{
+				getChildWishesFromServer(year, childrenJson[0].id);
+			}
+			else
+				$("#twishbody").empty();
+		});
+    }
+    
+    function getChildWishesFromServer(year, childid)
+    {
+    	childwishparams=  "token=" + sessionStorage.getItem("token") + "&" +
+		"year=" + year + "&" +
+		"childid=" + childid + "&" +
+		"callback=?";
+
+		$.getJSON('wishes', childwishparams, function(data)
+		{
+			wishJson = data;
+			if(wishJson.hasOwnProperty('error'))
+				window.location=document.getElementById('timeoutanchor').href;
+			else
+				updateWishTable(wishJson);
+		});
+    }
+   
+    function updateChildTable()
+    {
+    	$("#tchildbody").empty();
+    	
+    	var childSelect = document.getElementById("childfn");
+    	clearSelect(childSelect);
+    	
+    	for(var i=0; i<childrenJson.length; i++)
+		{
+    		addChildTableRow(i, childrenJson[i]);	//add row to table
+    		
+    		var option = document.createElement("option"); //add child fn to select
+			option.text = childrenJson[i].firstname;
+	    	option.value = i;
+
+	    	try 
+    		{
+        		childSelect.add(option, null); //Standard 
+    		} 
+    		catch(error) 
+    		{
+        		childSelect.add(option); // IE only
+    		}
+    		
+   		}
+    	
+    	if(childrenJson.length > 0)
+    	{
+    		var child = childrenJson[0];
+    		var ageInput = document.getElementById('age');
+    		ageInput.value = getAge(child.sDOB) + " " + child.gender.toLowerCase();
+    	}
+    }
+	
+	function updateWishTable(wishJson)
+    {
+    	$("#twishbody").empty();
+    	
+    	for(var i=0; i<wishJson.length; i++)
+		{
+    		addWishTableRow(i, wishJson[i]);	//add row to table
+		}
+    }
+	
+	function updateAdultTable()
+    {
+    	$("#tadultbody").empty();
+    	
+    	for(var i=0; i<adultsJson.length; i++)
+		{
+    		addAdultTableRow(i, adultsJson[i]);	//add row to table
+		}
+    }
+	
+	function addChildTableRow(cnum, child)
+    {
+        var childinfo = [child.firstname, child.lastname, child.sDOB, child.gender, child.school];
+        var fieldname = ["childfn", "childln", "childdob", "childgender", "childschool"];
+        var columnsize= ['108px', '116px', '72px', '56px', '144px'];
+        var fieldsize = [15, 16, 10, 6, 20];
+        
+	    var tabBody = document.getElementById("childtable").getElementsByTagName('tbody').item(0);
+        row=document.createElement("tr");
+    	
+        for(index=0; index < childinfo.length; index++)	//create the child info cells
+        {
+        	cell= document.createElement("td");
+        	cell.style.width = columnsize[index];
+    	    content= document.createElement("input");
+ 	    	content.type="text";
+ 	    	content.name=fieldname[index] + cnum;
+        	content.value = childinfo[index];
+        	content.setAttribute("size", fieldsize[index]);
+        	cell.appendChild(content);
+        	row.appendChild(cell);
+        	
+        }
+
+        tabBody.appendChild(row);
+    }
+	
+	function addWishTableRow(wn, childwish)
+    {
+		var wishinfo= [wn+1, childwish.name, childwish.detail, childwish.restriction, childwish.partner, childwish.status];
+		var wishcolumnsize= ['56px', '120px', '240px', '8px', '240px', '80px'];
+		var wishfieldsize= [1, 12, 32, 1, 32, 10];
+        
+	    var tabBody = document.getElementById("wishtable").getElementsByTagName('tbody').item(0);
+        row=document.createElement("tr");
+         
+        for(index=0; index < wishinfo.length; index++)	//create the child info cells
+        {
+        	cell= document.createElement("td");
+        	cell.style.width = wishcolumnsize[index];
+    	    content= document.createElement("input");
+ 	    	content.type="text";
+        	content.value = wishinfo[index];
+        	content.readOnly = true;
+        	content.setAttribute("size", wishfieldsize[index]);
+        	cell.appendChild(content);
+        	row.appendChild(cell);
+        }
+        
+        tabBody.appendChild(row);
+    }
+	
+	function addAdultTableRow(anum, adult)
+    {
+	    var tabBody = document.getElementById("adulttable").getElementsByTagName('tbody').item(0);
+        row=document.createElement("tr");
+        
+        cell= document.createElement("td");
+        adultname= document.createElement("input");
+        adultname.type="text";
+        adultname.name="adultname" + anum;
+        adultname.value = adult.name;
+        adultname.setAttribute("size", 22);
+        cell.appendChild(adultname);
+        row.appendChild(cell);
+        
+        cell= document.createElement("td");
+        var adultgender= document.createElement("input");
+        adultgender.type="text";
+        adultgender.name="adultgender" + anum;
+        adultgender.value = adult.gender;
+        adultgender.setAttribute("size", 8);
+        cell.appendChild(adultgender);
+        row.appendChild(cell);
+
+        tabBody.appendChild(row);
+    }
+	
+	function getAge(childbirthdate)
+	{
+		var yearCB = document.getElementById("yearlist");
+		var curryear = yearCB.options[yearCB.selectedIndex].value;
+		var xmasday = new Date(curryear,11,25,0,0,0,0);
+		var birthdate= new Date(childbirthdate);
+		
+		var age= [];
+		
+		if(birthdate >= xmasday)
+		{
+			age.push('Newborn');
+		}
+		else
+		{
+	    	var y= [xmasday.getFullYear(), birthdate.getFullYear()],
+	    	ydiff= y[0]-y[1],
+	    	m= [xmasday.getMonth(), birthdate.getMonth()],
+	    	mdiff= m[0]-m[1],
+	    	d= [xmasday.getDate(), birthdate.getDate()],
+	    	ddiff= d[0]-d[1];
+
+	    	if(mdiff < 0 || (mdiff === 0 && ddiff < 0))--ydiff;
+	    	if(mdiff < 0) mdiff+= 12;
+	    	if(ddiff < 0)
+	    	{
+	        	birthdate.setMonth(m[1]+1, 0);
+	        	ddiff= birthdate.getDate()-d[1]+d[0];
+	        	--mdiff;
+	    	}
+	    	
+	    	if(ydiff > 0) age.push(ydiff+ ' yr. old');
+	    	else if(mdiff >= 0) age.push(mdiff+ ' mos. old');
+		}
+	    	return age.join('');
+	}
+	
+	function updateForYearSelection()
+    {
+    	//get selected year
+    	var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		sessionStorage.setItem('curryear', year);
+		sessionStorage.setItem('famref', "NNA");
+		getFamilyReferencesFromServer(year);
+    }
+	
+	function updateForChildSelection()
+    {
+    	//get selected year
+    	var childCB = document.getElementById("childfn");
+		var child = childrenJson[childCB.selectedIndex];
+		var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		var ageInput = document.getElementById('age');
+		ageInput.value = getAge(child.sDOB) + " " + child.gender.toLowerCase();
+    	
+		getChildWishesFromServer(year, child.id)	//get child wishes from server
+    }
+	
+	function clearSelect(select)
+	{
+		var i;
+		for(i=select.options.length-1;i>=0;i--)
+		{
+	    	select.remove(i);
+	    }
+	}
+	
+	function onNextFamily()
+	{
+		var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		if(familyRefs.length > 0 && famIndex < familyRefs.length-1)
+		{
+			famIndex++;
+			getFamilyFromServer(year, familyRefs[famIndex].id);
+		}
+		else if(familyRefs.length > 0 && famIndex === familyRefs.length-1)
+		{
+			famIndex= 0;
+			getFamilyFromServer(year, familyRefs[famIndex].id);
+		}
+	}
+	
+	function onPriorFamily()
+	{
+		var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		if(familyRefs.length > 0 && famIndex > 0)
+		{
+			famIndex--;
+			getFamilyFromServer(year, familyRefs[famIndex].id);
+		}
+		else if(familyRefs.length > 0 && famIndex === 0)
+		{
+			famIndex= familyRefs.length-1;
+			getFamilyFromServer(year, familyRefs[famIndex].id);
+		}
+	}
+	
+	function onNextSearchFamily()
+	{
+		if(searchRefs.length > 0 && searchIndex < searchRefs.length-1)
+		{
+			searchIndex++;
+		}
+		else if(searchRefs.length > 0 && searchIndex === searchRefs.length-1)
+		{
+			searchIndex= 0;
+		}
+		
+		var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		findFamilyIndexAndGetFamily(year, searchRefs[searchIndex].id);
+	}
+	
+	function onPriorSearchFamily()
+	{
+		if(searchRefs.length > 0 && searchIndex > 0)
+		{
+			searchIndex--;
+		}
+		else if(searchRefs.length > 0 && searchIndex === 0)
+		{
+			searchIndex= searchRefs.length-1;
+		}
+		
+		var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		findFamilyIndexAndGetFamily(year, searchRefs[searchIndex].id);
+	}
+	
+	function onSearch()
+	{
+		var yearCB = document.getElementById("yearlist");
+		var year = yearCB.options[yearCB.selectedIndex].value;
+		
+		var search = document.getElementById("search");
+		
+		if(search.value !== "" && familyRefs.length > 0)
+		{
+			searchForFamilyReferencesFromServer(year, search.value)	
+		}
+		else
+		{
+			onClearSearch();
+		}
+	}
+	
+	function onClearSearch()
+	{
+		document.getElementById('srch-prior').style.visibility = 'hidden';
+		document.getElementById('srch-next').style.visibility = 'hidden';
+		
+		var resultEl = document.getElementById('resultbar');
+		resultEl.textContent = "Families: " + familyRefs.length.toString();
+	}
+	
+	function removeOptions(selectbox)
+	{
+	    var i;
+	    for(i=selectbox.options.length-1;i>=0;i--)
+	    {
+	        selectbox.remove(i);
+	    }
+	}
+	
+	function onProfileNotChanged()
+    {
+		var params = {}	
+		params["token"] = sessionStorage.getItem('token');
+		$.post('profileunchanged', params, function(response)
+		{
+			document.getElementById('message').textContent= response.message;
+		}, "jsonp");
+		
+		window.location=document.getElementById('closepopup').href;
+    }
+	
+	function onCancel()
+    {
+		window.location=document.getElementById('closepopup').href;
+    }
+	
+	function validate()
+    {
+		var mssgEl = document.getElementById("pw_mssg");
+    	var currpwEl = document.getElementById("currpw");
+        var pass1El = document.getElementById("newpw");
+        var pass2El = document.getElementById("verifypw");
+        var ok = true;
+        
+        if(currpwEl.value == "")
+        {
+        	//alert("current password field empty");
+            currpwEl.style.borderColor = "#E34234";
+            
+            mssgEl.style.color = "Red";
+            mssgEl.textContent = "Current password not provided, please try again!";
+            ok = false;
+        }
+        else if(pass1El.value !== pass2El.value)
+        {
+            //alert("New and Verify Passwords do not match");
+            pass1El.style.borderColor = "#E34234";
+            pass2El.style.borderColor = "#E34234";
+            
+            mssgEl.style.color = "Red";
+            mssgEl.textContent = "New and Verify passwords don't match, please try again!";
+            ok = false;
+        }
+
+        return ok;
+    }
+	
+	function onSessionTimeout()
+	{
+		 window.location.assign('timeout');
+	}
+	
+	function post(path, params, method) 
+	{
+	    method = method || "post"; // Set method to post by default if not specified.
+
+	    // The rest of this code assumes you are not using a library.
+	    // It can be made less wordy if you use one.
+	    var form = document.createElement("form");
+	    form.setAttribute("method", method);
+	    form.setAttribute("action", path);
+
+	    for(var key in params) 
+	    {
+	        if(params.hasOwnProperty(key)) 
+	        {
+	            var hiddenField = document.createElement("input");
+	            hiddenField.setAttribute("type", "hidden");
+	            hiddenField.setAttribute("name", key);
+	            hiddenField.setAttribute("value", params[key]);
+
+	            form.appendChild(hiddenField);
+	         }
+	    }
+
+	    document.body.appendChild(form);
+	    form.submit();
+	}
+  </script>
+  <style type="text/css">	
+	form label 
+	{
+		font-size: 90%;
+ 		display: inline-block;
+ 		text-align: left;
+	}
+	#controlbar
+	{
+		width:90%;
+		height: 28px;
+		margin:0 auto;
+		background-color: #E8E8E8;
+		border: 1px solid black;
+	}
+	table, th, td {border: 1px solid black;}
+	#searchbar {float: right;}
+	#resultbar 
+	{
+		margin-left: 20px;
+	}
+	.clearable
+	{
+  		background: #fff url(/clearx) no-repeat right -10px center;
+  		border: 1px solid #999;
+  		padding: 3px 18px 3px 4px;     /* Use the same right padding (18) in jQ! */
+  		border-radius: 3px;
+  		transition: background 0.4s;
+	}
+	.clearable.x  { background-position: right 5px center; } /* (jQ) Show icon */
+	.clearable.onX{ cursor: pointer; }              /* (jQ) hover cursor style */
+	.clearable::-ms-clear {display: none; width:0; height:0;} /* Remove IE default X */
+  </style>
+</head>
+<body>
+  <a href="#editProfile" id="editprofileanchor" style="visibility: hidden">Edit Profile</a>
+  <a href="#timeoutdlg" id="timeoutanchor" style="visibility: hidden">Timeout</a>
+  <div id='topbar' class="topbar">
+    <img src="onclogo" height="55" width="75"/>
+	<p><span id="banner">USER_NAME, welcome to Our Neighbor's Child Data Management System</span><br>
+	<span id="message">USER_MESSAGE</span></p>
+  </div>
+  <nav>
+	<ul>
+	    <li><select id="yearlist" name="yearlist" onchange="updateForYearSelection()"></select></li>
+<!--	  <li><a href="">Agents <span class="caret"></span></a>
+		  <div>
+		    <ul>
+			  <li><a href="">Manage Agents</a></li>
+		    </ul>
+		  </div>
+	    </li> `-->
+	    <li><a href="#">Families <span class="caret"></span></a>
+		  <div>
+		    <ul>
+<!-- 		  <li><a href="">Manage Families</a></li>  -->	
+			  <li><a href="familystatus?token=REPLACE_TOKEN">Refer Family</a></li>
+		    </ul>
+		  </div>
+	    </li>
+	</ul>
+	<ul class='floatright'>
+	  <li id='profileli'><a href="#">Profile <span class="caret"></span></a>
+		  <div>
+		    <ul>
+			  <li><a href="#editProfile" onclick='showEditProfileDialog()'>Edit Profile</a></li>
+			  <li><a href="#chgpwdlg">Change Password</a></li>
+		    </ul>
+		  </div>
+	  </li>	    
+	  <li id="logoutli"><a href="logout?token=REPLACE_TOKEN">Logout</a></li>
+	</ul>
+  </nav>
+  <div id='controlbar'>
+    <span id="navigatebar">
+  	  <button id="prior" onclick="onPriorFamily()">Prior Family</button>
+  	  <button id="next" onclick="onNextFamily()">Next Family</button>
+  	</span>
+  	<span id='resultbar'></span>
+  	<span id='searchbar'>  
+  	  <label for="search">Search for:</label> 
+	  <input class='clearable' id="search" type="text" placeholder="type search text <enter>">
+	  <button id="srch-prior" onclick="onPriorSearchFamily()">Prior</button>
+  	  <button id="srch-next" onclick="onNextSearchFamily()">Next</button>
+    </span>
+  </div>
+  <form id="familyreferral" action="referfamily" onsubmit="return submitReferral()" method="post">
+  <input id='token' type="hidden" name="token">
+  <input id='year' type="hidden" name="year">
+  <input id='targetid' type="hidden" name="targetid">
+  <br>
+  <fieldset id='faminfofs'>
+  <legend class="legend-major">Family Information & Status</legend>
+    <label id= 'lblhohln' for="hohln">Last Name:</label>
+    <input id='hohln' title="Last Name" name="hohLN" type="text" size="17" readonly>
+    <label id= 'lblhohfn' for="hohfn">First Name:</label>
+    <input id='hohfn' title="First Name" name="hohFN" type="text" size="16" readonly>
+    <label id='lblonc' for="onc">ONC #:</label>
+    <input id='onc' type="text" size="5" readonly>
+    <label id='lblref' for="ref">Ref #:</label>
+    <input id='ref' type="text" size="7" readonly>
+    <label id='lblbatch' for="batch">Batch #:</label>
+    <input id="batch" type="text" size="6" readonly>
+    <label id='lbldns' for="dns">DNS:</label>
+    <input id="dns" type="text" size="6" readonly>
+    <br>
+    <label id= 'lblfamstat' for="famstat">Family Status:</label>
+    <input id='famstat' title="Family Status" type="text" size="14" readonly>
+    <label id= 'lbldelstat' for="delstat">Delivery Status:</label>
+    <input id='delstat' title="Delivery Status" type="text" size="14" readonly>
+    <label id= 'lblmealstat' for="mealstat">Meal Status:</label>
+    <input id='mealstat' title="Meal Status" type="text" size="20" readonly>
+    <br>
+    <label id='lblhomephone' for="homephone">Home Phone:</label>
+    <input id="homephone" title="Home Phone #" name="homephone" type="text" size="13" readonly>
+    <label id='lblcellphone' for="cellphone">Mobile Phone:</label>
+    <input id="cellphone" title="Cell Phone #" name="cellphone" type="text" size="13" readonly>
+    <label id='lblemail' for="email">Email:</label>
+    <input id='email' title="E-mail address" name="email" type="email" size="30" readonly>
+    <label id='lbllanguage' for="language">Language:</label>
+    <input id='language' title="Primary language" name="language" type= "text" size="13" readonly>
+	<br>
+    <label id="lblhousenum" for="housenum">House #:</label>
+	<input id="housenum"name="housenum" type="text" size="8" readonly>
+	<label id="lblstreet" for="street">Street:</label>
+    <input id="street" name="street" type="text" size="20"readonly>
+    <label id='lblunit' for="unit">Unit:</label>
+    <input id="unit" name="unit" type="text" size="8" readonly>
+    <label id='lblcity' for="city">City:</label>
+    <input id="city" name="city" size='16'>
+    <label id='lblzipcode' for="zipcode">Zip:</label>
+    <input id="zipcode" name="zipcode" size='7'>
+    <label id='lblregion' for="region">Region:</label>
+    <input id="region" name="region" size='2'>
+    <label id='lbltransport' for="transport">Transportation:</label>
+	<input id="transport" name="transport" type="text" size="4">
+  </fieldset>
+  <br>
+  <fieldset>
+    <legend class="legend-major">Delivery Address</legend>
+    <label id="lbldelhousenum" for="delhousenum">House #:</label>
+	<input id="delhousenum" title="Delivery House #" name="delhousenum" type="text" size="8" placeholder="House #" onchange="verifyDeliveryAddress()" autocomplete="off" required>
+	<label id="lbldelstreet" for="delstreet">Street:</label>
+    <input id="delstreet" title="Delivery Street Name" name="delstreet" type="text" size="20" placeholder="Street Name" onchange="verifyDeliveryAddress()" autocomplete="off" required>
+    <label id="lbldelunit" for="delunit">Unit:</label>
+    <input id="delunit" title="Deleivery Apt. or Unit #" name="delunit" type="text" size="8" placeholder="Apt #" onchange="verifyDeliveryAddress()" autocomplete="off">
+    <label id="lbldelcity" for="delcity">City:</label>
+    <input id="delcity" title="Delivery City" name="delcity" type= 'text' size='16'>
+    <label id="lbldelzipcode" for="delzipcode">Zip:</label>
+    <input id="delzipcode" title="Deleivery Zip Code" name="delzipcode"  type='text' size='8'>
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Referring Agent</legend>
+    <label id='lblagentname' for="agentname">Name:</label>
+	<input id="agentname" title="Agent Name" name="agentfn" type="text" size="16" readonly>
+	<label id='lblagentorg' for="agentorg">Org:</label>
+    <input id="agentorg" title="Agent Organization" name="agentln" type="text" size="16" readonly>
+    <label id='lblagenttitle' for="agenttitle">Title:</label>
+    <input id="agenttitle" title="Agent Title" name="agenttitle" type="text" size="24" readonly>
+    <label id='lblagentphone' for="agentphone">Phone:</label>
+    <input id="agentphone" title="Agent Phone" name="agentphone" type="text", size="12" readonly>
+    <label id='lblagentemail' for="agentemail">Email:</label>
+    <input id="agentemail" title="Agent Email" name="agentemail" type="text" size="28" readonly>
+  </fieldset>
+  <br>
+  <fieldset>
+	<legend class="legend-major">Family Members</legend>
+      <fieldset class='floatleft'> 
+	  <legend>Children</legend>
+	  <table id='childtable'>
+	  	<thead>
+    		<tr>
+        		<th>First Name</th>
+        		<th>Last Name</th>
+        		<th>DoB </th>
+        		<th>Gender </th>
+        		<th>School </th>
+    		</tr>
+        </thead>
+      	<tbody id="tchildbody">
+      	</tbody>
+      </table>
+  	</fieldset>
+	<fieldset class='floatleft'>
+	  <legend>Additional Adults</legend>
+	  <table id='adulttable'>
+	  	<thead>
+    		<tr>
+        		<th>Name</th>
+        		<th>Gender </th>
+    		</tr>
+    	</thead>
+    	<tbody id="tadultbody">
+    	</tbody>
+      </table>
+    </fieldset> 
+  </fieldset>
+  <br>
+  <fieldset>
+   <legend class="legend-major">Gift Assistance</legend>
+   <select id="childfn" onchange="updateForChildSelection()"> </select>
+   <label>is a</label>
+   <input id='age' type='text' size='13'>
+  	<table id="wishtable" border="1">
+  	<thead>
+    	<tr>
+        	<th>Wish #</th>
+        	<th>Name</th>
+        	<th>Detail</th>
+        	<th>Res</th>
+        	<th>Partner</th>
+        	<th>Status</th>	
+    	</tr>
+      </thead>
+      <tbody id="twishbody">
+      </tbody>
+  </table>
+  </fieldset>
+  <br>
+  <fieldset>
+  <legend class="legend-major">Meal Assistance</legend>
+  	<label for="mealtype">Requested Holiday: </label>
+    <input id="mealtype" name="mealtype" size="18" readonly>
+    <label for="deitres">Restrictions: </label>
+	<input id="dietres" type="text" name="dietres" size="68" readonly>
+  </fieldset>
+  <br>
+  <fieldset>
+   <legend class="legend-major">Family Details, Notes & Instructions</legend>
+    <fieldset class='floatleft'>
+		<legend>Details</legend> 
+		<textarea id="detail" rows="4" cols="36"></textarea>  
+    </fieldset>
+    <fieldset class='floatleft'>
+		<legend>ONC Notes</legend> 
+		<textarea id="notes" rows="4" cols="36"></textarea>
+	</fieldset>
+	<fieldset class='floatleft'>	
+	<legend>Delivery Instructions</legend>
+	<textarea id="delInstr" rows="4" cols="36"></textarea>
+	</fieldset>
+  </fieldset>
+  <br>
+</form>
+<!-- Edit Profile Dialog -->
+  <div id="editProfile" class="modalDialog">
+	<div id='inner'>
+		<a id='closepopup' href="#close" title="Close" class="close" onclick="onProfileNotChanged()">X</a>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Update ONC Profile</span>
+		</div>
+    	<p><label class='lbl_ep' for="userfirstname">First Name:</label>
+    	<input class='inp_ep' type="text" id="userfirstname" name="firstname" autofocus></p>
+    	<p><label class='lbl_ep' for="userlastname">Last Name:</label>
+    	<input class='inp_ep' type="text" id="userlastname" name="lastname"><br></p>
+    	<p><label class='lbl_ep' for="userorg" >Organization:</label>
+    	<input class='inp_ep' type="text" id="userorg" name="org"></p>
+    	<p><label class='lbl_ep' for="usertitle">Title:</label>
+    	<input class='inp_ep' type="text" id="usertitle" name="title"><br></p>
+    	<p><label class='lbl_ep' for="useremail">E-Mail:</label>
+    	<input class='inp_ep' type="text" id="useremail" name="email"></p>
+    	<p><label class='lbl_ep' for="userphone">Phone:</label>
+    	<input class='inp_ep' type="text" id="userphone" name="phone"><br></p>
+    	<div id='buttonbar'>
+      	  <button id="cancel" onclick="onProfileNotChanged()">Cancel</button>
+      	  <button id="update" onclick="onUpdateProfile()">Update</button>
+    	</div> 
+	</div>
+  </div>
+<!-- Change Password Dialog -->
+  <div id="chgpwdlg" class="modalDialog">
+	<div id='inner'>
+		<a id='closepopup' href="#close" title="Close" class="close">X</a>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Change Password</span>
+		</div>
+		<p id='pw_mssg'>Enter current and new password:</p>
+    	<p><label class='lbl_pw' for="currpw">Current Password:</label>
+    	<input class='inp_pw' type="password" id="currpw" name="field1" autofocus></p>
+    	<p><label class='lbl_pw'for="newpw">New Password:</label>
+    	<input class='inp_pw' type="password" id="newpw" name="field2"><br></p>
+    	<p><label class='lbl_pw'for="verifypw" >Verify Password:</label>
+    	<input class='inp_pw' type="password" id="verifypw" name="field3"></p>
+    	<div id='buttonbar'>
+      	  <button id="cancel" onclick="onCancel()">Cancel</button>
+      	  <button id="submit" onclick="onChangePW()">Change Password</button>
+    	</div> 
+	</div>
+  </div>
+  <!-- Timeout Dialog -->
+  <div id="timeoutdlg" class="modalDialog">
+	<div id='inner'>
+		<div id='dialogtopbar'>
+		  <img src="onclogo" height="45" width="65"/>
+		  <span id='dialogmssg'>Session Timeout</span>
+		</div>
+		<p id='to_mssg'>Your session expired due to inactivity</p>
+    	<div id='buttonbar'>
+      	  <button id="submit" onclick="onSessionTimeout()">Logout</button>
+    	</div> 
+	</div>
+  </div>    
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <title>Our Neighbor's Child Login</title>
+    <style>     
+    body {background-color: black;}
+    label
+    {
+    	width: 5em;
+    	float: left;
+    	text-align: right;
+    	margin-right: 0.5em;
+    	display: block;
+    	color: black;
+    }
+    input
+    {
+    	color: black;
+    	background: #FFFFE4;
+    	border: 1px solid #781351;
+    	width: 15em;
+    }
+    #submit
+    {
+    	display: block;
+    	margin: 0px auto;
+    	background-color: #336699;
+    	color: #ffffff;
+    	border: 4px outset white;
+    	width: 8em;
+    }
+   	fieldset
+    {
+  		margin: 0;
+  		position: absolute;            
+  		top: 56%; 
+  		left: 52%;                    
+   		transform: translate(-50%, -50%); 
+  		border: 4px solid #781351;
+    	color: #00F;
+    	background-color: #E8E8E8;
+    	width: 21em
+    }
+    legend
+    {
+    	color: black;
+    	background: #ffa20c;
+    	border: 1px solid #781351;
+    	padding: 2px 6px
+    }
+    @font-face 
+    {
+  		font-family: 'vanilla';
+  		src: url('vanilla.ttf');
+	}
+    #header
+    {
+   		font-family:"vanilla" !important;
+   		font-size:40px !important;
+   		color:#FFFFFF !important;
+   		margin-top: 30px;
+   		margin-left: 40px;
+    }
+    #inner
+    {
+   		margin-top: -20px;
+		height:600px;
+		position: relative;
+		background-image: url(oncsplash.gif);
+		background-repeat: no-repeat;
+	  	background-position: center;
+	}
+	.legend-major
+	{
+  		padding: 0.2em 0.5em;
+  		border:2px solid black;
+  		background-color: #E5FFCC;
+  		font-size:80%;
+  		text-align:left;
+	 }
+    </style>
+</head>
+<body>
+<div><p id='header'>Our Neighbor's Child<p></div>
+ <div id="inner">
+	<form action="login" method="post">
+      <fieldset>
+    	<legend class='legend-major'>Our Neighbor's Child Login</legend>
+    	<p align="center"><b><i>WELCOME_MESSAGE</i></b></p>
+    	<p><label for="username">User Name:</label> <input type="text" id="username" name="field1" autofocus/></p>
+    	<p><label for="password">Password:</label> <input type="password" id="password" name="field2"/><br /></p>
+    	<p><input id="submit" type="submit" value="Login" /></p>
+    	</fieldset>
+    </form>
+  </div>  
+</body>
+</html>
