@@ -5,5 +5,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/ONC Client"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.7.jar"/>
 	<classpathentry kind="lib" path="lib/http-2.2.1.jar"/>
+	<classpathentry kind="lib" path="/ONC Client/lib/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="/ONC Client/lib/java-json.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
