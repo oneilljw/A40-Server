@@ -9,19 +9,19 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 
-public class ONCWebServer
+public class A4OWebServer
 {
 	private static final int WEB_SERVER_PORT = 8902;
 	
-	private static ONCWebServer instance = null;
+	private static A4OWebServer instance = null;
 	private static WebsiteStatus websiteStatus;
 	
-	private ONCWebServer() throws IOException
+	private A4OWebServer() throws IOException
 	{
 		ServerUI serverUI = ServerUI.getInstance();
 		
 		HttpServer server = HttpServer.create(new InetSocketAddress(WEB_SERVER_PORT), 0);
-		ONCHttpHandler oncHttpHandler = new ONCHttpHandler();
+		A4OHttpHandler oncHttpHandler = new A4OHttpHandler();
 		
 		String[] contexts = {"/welcome", "/logout", "/login", "/dbStatus", "/agents", "/families", "/familystatus",
 							"/getfamily", "/references", "/getagent", "/getmeal", "/children", "/familysearch", 
@@ -51,10 +51,10 @@ public class ONCWebServer
 		serverUI.addLogMessage(String.format("Web Server started: %d contexts", contexts.length));
 	}
 	
-	public static ONCWebServer getInstance() throws IOException
+	public static A4OWebServer getInstance() throws IOException
 	{
 		if(instance == null)
-			instance = new ONCWebServer();
+			instance = new A4OWebServer();
 		
 		return instance;
 	}
@@ -70,7 +70,7 @@ public class ONCWebServer
 	static String setWebsiteStatus(String websiteStatusJson)
 	{ 
 		Gson gson = new Gson();
-		ONCWebServer.websiteStatus = gson.fromJson(websiteStatusJson, WebsiteStatus.class);
+		A4OWebServer.websiteStatus = gson.fromJson(websiteStatusJson, WebsiteStatus.class);
 		
 		return "UPDATED_WEBSITE_STATUS" + websiteStatusJson;
 	}

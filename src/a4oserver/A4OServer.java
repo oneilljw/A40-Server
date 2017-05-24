@@ -197,7 +197,7 @@ public class A4OServer
 				try
 				{
 					new A4OServer();
-					ONCWebServer.getInstance();
+					A4OWebServer.getInstance();
 				} 
 				catch (IOException e)
 				{

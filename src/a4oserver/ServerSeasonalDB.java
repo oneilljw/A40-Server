@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-public abstract class ServerSeasonalDB extends ONCServerDB
+public abstract class ServerSeasonalDB extends A4OServerDB
 {
 	protected static final int BASE_YEAR = 2012;
 	

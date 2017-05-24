@@ -13,7 +13,7 @@ import ourneighborschild.ONCObject;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
-public abstract class ServerPermanentDB extends ONCServerDB
+public abstract class ServerPermanentDB extends A4OServerDB
 {
 	protected int nextID;
 	protected boolean bSaveRequired;

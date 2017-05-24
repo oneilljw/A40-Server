@@ -338,7 +338,7 @@ public class DesktopClient extends Thread
                 else if(command.startsWith("GET<website_status>"))
                 {
                 	clientMgr.addLogMessage(command);
-                	output.println(ONCWebServer.getWebsiteStatusJson());
+                	output.println(A4OWebServer.getWebsiteStatusJson());
                 }
                 else if(command.startsWith("GET<changes>"))
                 {   
@@ -784,7 +784,7 @@ public class DesktopClient extends Thread
                 else if(command.startsWith("POST<update_website_status>"))
                 {
                 	clientMgr.addLogMessage(command);
-                	String response = ONCWebServer.setWebsiteStatus(command.substring(27));
+                	String response = A4OWebServer.setWebsiteStatus(command.substring(27));
                 	output.println(response);
                 	clientMgr.addLogMessage(response);
                 	clientMgr.notifyAllOtherClients(this, response);

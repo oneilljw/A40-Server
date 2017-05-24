@@ -40,7 +40,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.google.gson.Gson;
 
-public class ONCHttpHandler implements HttpHandler
+public class A4OHttpHandler implements HttpHandler
 {
 	private static final String REFERRAL_STATUS_HTML = "ScrollFamTable.htm";
 	private static final String ONC_ELF_PAGE_HTML = "ONC.htm";
@@ -74,7 +74,7 @@ public class ONCHttpHandler implements HttpHandler
     	{
     		String response = null;
     		try {
-    			if(ONCWebServer.isWebsiteOnline())
+    			if(A4OWebServer.isWebsiteOnline())
     			{
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), LOGOUT_HTML));
     				response = response.replace("WELCOME_MESSAGE", "Welcome to Our Neighbor's Child, Please Login:");
@@ -82,7 +82,7 @@ public class ONCHttpHandler implements HttpHandler
     			else
     			{
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), MAINTENANCE_HTML));
-    				response = response.replace("TIME_BACK_UP", ONCWebServer.getWebsiteTimeBackOnline());
+    				response = response.replace("TIME_BACK_UP", A4OWebServer.getWebsiteTimeBackOnline());
     			}
     		} catch (IOException e) {
     			// TODO Auto-generated catch block
@@ -95,7 +95,7 @@ public class ONCHttpHandler implements HttpHandler
     	{
     		String response = null;
     		try {
-    			if(ONCWebServer.isWebsiteOnline())
+    			if(A4OWebServer.isWebsiteOnline())
     			{
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), LOGOUT_HTML));
     				response = response.replace("WELCOME_MESSAGE", "Your last session expired, please login again:");
@@ -103,7 +103,7 @@ public class ONCHttpHandler implements HttpHandler
     			else
     			{
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), MAINTENANCE_HTML));
-    				response = response.replace("TIME_BACK_UP", ONCWebServer.getWebsiteTimeBackOnline());
+    				response = response.replace("TIME_BACK_UP", A4OWebServer.getWebsiteTimeBackOnline());
     			}
     		} catch (IOException e) {
     			// TODO Auto-generated catch block
@@ -1132,7 +1132,7 @@ public class ONCHttpHandler implements HttpHandler
 	{
 		String response = null;
 		try {
-			if(ONCWebServer.isWebsiteOnline())
+			if(A4OWebServer.isWebsiteOnline())
 			{
 				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), LOGOUT_HTML));
 				response = response.replace("WELCOME_MESSAGE", "Your session expired, please login again:");

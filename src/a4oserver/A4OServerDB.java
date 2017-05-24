@@ -7,7 +7,7 @@ import java.util.List;
 import ourneighborschild.ONCObject;
 import au.com.bytecode.opencsv.CSVWriter;
 
-public abstract class ONCServerDB
+public abstract class A4OServerDB
 {
 	protected static final int USER_UNCHANGED = 0;
 	protected static final int USER_UPDATED = 1;
