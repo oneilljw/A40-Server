@@ -305,7 +305,7 @@ public class ServerUI extends JPanel implements ListSelectionListener
 		imageIcons = new ImageIcon[5];
 		
 		//ONC Server logo
-		imageIcons[0] = createImageIcon("oncserverlogosmall.png", "ONC Logo");
+		imageIcons[0] = createImageIcon("A4O.png", "A4O Logo");
 		
 		//Icons used for stop light status
 		imageIcons[1] = createImageIcon("traffic-lights-green-icon.gif", "Green Light Icon");
