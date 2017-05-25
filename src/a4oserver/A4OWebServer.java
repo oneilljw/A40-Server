@@ -11,7 +11,7 @@ import com.sun.net.httpserver.HttpServer;
 
 public class A4OWebServer
 {
-	private static final int WEB_SERVER_PORT = 8904;
+	private static final int WEB_SERVER_PORT = 8903;
 	
 	private static A4OWebServer instance = null;
 	private static WebsiteStatus websiteStatus;

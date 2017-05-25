@@ -77,7 +77,7 @@ public class A4OHttpHandler implements HttpHandler
     			if(A4OWebServer.isWebsiteOnline())
     			{
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), LOGOUT_HTML));
-    				response = response.replace("WELCOME_MESSAGE", "Welcome to Our Neighbor's Child, Please Login:");
+    				response = response.replace("WELCOME_MESSAGE", "Welcome to A.C.T 4 Others, Please Login:");
     			}
     			else
     			{
@@ -484,7 +484,7 @@ public class A4OHttpHandler implements HttpHandler
     	}
     	else if(requestURI.contains("/a4osplash"))
     	{
-    		sendFile(t, "image/gif", "a4osplash.gif");
+    		sendFile(t, "image/png", "a4osplash.png");
     	}
     	else if(requestURI.contains("/clearx"))
     	{
@@ -492,7 +492,7 @@ public class A4OHttpHandler implements HttpHandler
     	}
     	else if(requestURI.contains("/a4ologo"))
     	{
-    		sendFile(t, "image/gif", "a4osplash.gif");    	
+    		sendFile(t, "image/png", "a4osplash.png");    	
     	}
     	else if(requestURI.contains("/favicon.ico"))
     	{

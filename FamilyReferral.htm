@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title>ONC Family Assistance Request</title>
+  <title>A.C.T. 4 Others Holiday Assistance Request</title>
   <script src="//code.jquery.com/jquery-1.10.2.js"></script>
   <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
   <script src="commonfamily.js"></script>
@@ -389,8 +389,8 @@
   <a href="#timeoutdlg" id="timeoutanchor" style="visibility: hidden">Timeout</a>
   <div id="topbar" class="topbar">
     <img src="a4ologo" height="55" width="75"/>
-    <p><span id="banner">ONC Family Assistance Referral Form</span><br>
-	<span id="message">(please complete and click Submit To ONC)</span></p>
+    <p><span id="banner">A4O Family Assistance Referral Form</span><br>
+	<span id="message">(please complete and click Submit To A4O)</span></p>
   </div>
   <nav>
     <ul>
@@ -477,7 +477,7 @@
   </fieldset>
   <br>
   <fieldset>
-  <legend class="legend-major">Delivery Address & Transportation: Provide address that ONC will use for gift delivery & family's access to transportation</legend>
+  <legend class="legend-major">Delivery Address & Transportation: Provide address that A4O will use for gift delivery & family's access to transportation</legend>
 	<input type="checkbox" id="sameaddress" title="Uncheck to edit HoH or Delivery address" onclick="sameAddressClicked(this)">Check if same as HOH address above, otherwise complete:
 	<input id="delhousenum" title="Delivery House #" name="delhousenum" type="text" size="8" placeholder="House #" onchange="verifyDeliveryAddress()" autocomplete="off" required>
     <input id="delstreet" title="Delivery Street Name" name="delstreet" type="text" size="20" placeholder="Street Name" onchange="verifyDeliveryAddress()" autocomplete="off" required>
@@ -539,7 +539,7 @@
   <fieldset>
   <legend class="legend-major">Family Members</legend>
   <fieldset class="gray">
-  	<legend>Children in family (ONC will serve children under 18, or 18+ if they are still enrolled in FCPS. Enter Pre-K for children not yet enrolled)</legend>
+  	<legend>Children in family (A4O will serve children under 18, or 18+ if they are still enrolled in FCPS. Enter Pre-K for children not yet enrolled)</legend>
   	<input id="childfn" title="First name of child to be added" type="text" size="16" placeholder="First Name">
     <input id="childln" title="Last name of child to be added" type="text" size="16" placeholder="Last Name">
     <input id="childdob" title="Date of birth for child to be added" type="text" size="14" placeholder="DoB">
@@ -611,7 +611,7 @@
   </fieldset>
   <br>
   <fieldset>
-  <legend class="legend-major">Meal Assistance: ONC will refer family to WFCM or other meal providing organizations</legend>
+  <legend class="legend-major">Meal Assistance: A4O will refer family to a meal providing organization</legend>
 	<input type="checkbox" onclick="mealRqrdClicked(this)" title="Check if family needs meal assistance">Check to request meal assistance for:
     <select id="mealtype" name="mealtype" title="When does the family need meal assistance?" disabled>
 		<option value="No Assistance Rqrd">No Assistance Rqrd</option>
@@ -621,14 +621,14 @@
   <br>
   <fieldset>
    <legend class="legend-major">Family Details: Provide any additional details that may assist in serving this family</legend>
-	<input type="text" name="detail" size="128" placeholder="Details about family ONC should know" title="Provide ONC with information about the family you feel is important">
+	<input type="text" name="detail" size="128" placeholder="Details about family A4O should know" title="Provide A4O with information about the family you feel is important">
   </fieldset>
   <br>
   <div>
   	<span id="errormessage"></span>
   	<span id="submitspan">
   	  <label for="submit">Please check that all fields are complete prior to submission: </label>
-  	  <input id="btnsubmit" type="button" value="Submit" style="background-color: #336699; color: #ffffff;" title="Click to sumbit family to ONC" onclick= onSubmit()>
+  	  <input id="btnsubmit" type="button" value="Submit" style="background-color: #336699; color: #ffffff;" title="Click to sumbit family to A4O" onclick= onSubmit()>
 <!--  <input id="submit" type="submit" value="Submit to ONC" style="background-color: #808080; color: #ffffff;" title="Click to sumbit family to ONC"> -->  
   	</span>
   </div>
