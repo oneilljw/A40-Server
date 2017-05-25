@@ -11,7 +11,7 @@ import com.sun.net.httpserver.HttpServer;
 
 public class A4OWebServer
 {
-	private static final int WEB_SERVER_PORT = 8902;
+	private static final int WEB_SERVER_PORT = 8904;
 	
 	private static A4OWebServer instance = null;
 	private static WebsiteStatus websiteStatus;
@@ -25,7 +25,7 @@ public class A4OWebServer
 		
 		String[] contexts = {"/welcome", "/logout", "/login", "/dbStatus", "/agents", "/families", "/familystatus",
 							"/getfamily", "/references", "/getagent", "/getmeal", "/children", "/familysearch", 
-							"/adults", "/wishes", "/oncsplash", "/clearx", "/onclogo", "/oncstylesheet", 
+							"/adults", "/wishes", "/a4osplash", "/clearx", "/a4ologo", "/oncstylesheet", 
 							"/oncdialogstylesheet", "/newfamily", "/reqchangepw", "/timeout",
 							"/address", "/referral", "/referfamily", "/familyupdate", "/updatefamily",
 							"/changepw", "/startpage", "/vanilla", "/getuser", "/getstatus",

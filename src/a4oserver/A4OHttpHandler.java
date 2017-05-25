@@ -482,17 +482,17 @@ public class A4OHttpHandler implements HttpHandler
     		HtmlResponse response = ServerVolunteerDB.getDriverJSONP(year, fn, ln, callback);
     		sendHTMLResponse(t, response);
     	}
-    	else if(requestURI.contains("/oncsplash"))
+    	else if(requestURI.contains("/a4osplash"))
     	{
-    		sendFile(t, "image/gif", "oncsplash.gif");
+    		sendFile(t, "image/gif", "a4osplash.gif");
     	}
     	else if(requestURI.contains("/clearx"))
     	{
     		sendFile(t, "image/gif", "clear_x.gif");
     	}
-    	else if(requestURI.contains("/onclogo"))
+    	else if(requestURI.contains("/a4ologo"))
     	{
-    		sendFile(t, "image/gif", "oncsplash.gif");    	
+    		sendFile(t, "image/gif", "a4osplash.gif");    	
     	}
     	else if(requestURI.contains("/favicon.ico"))
     	{
