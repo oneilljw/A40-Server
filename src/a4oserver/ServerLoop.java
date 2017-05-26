@@ -20,7 +20,7 @@ public class ServerLoop extends Thread
 		//Create the client listener socket
 		try
 		{
-			listener = new ServerSocket(8901);
+			listener = new ServerSocket(8903);
 			listener.setSoTimeout(SERVER_TIMEOUT);
 		} 
 		catch (IOException e)
