@@ -38,7 +38,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 			famHistDB.add(delDBYear);
 							
 			//import the children from persistent store
-			importDB(year, String.format("%s/%dDB/FamilyHistoryDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/FamilyHistoryDB.csv",
 					System.getProperty("user.dir"),
 						year), "Delivery DB", FAMILY_HISTORY_DB_HEADER_LENGTH);
 							
@@ -377,7 +377,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		if(histDBYear.isUnsaved())
 		{
 //			System.out.println(String.format("DeliveryDB save() - Saving Delivery DB"));
-			String path = String.format("%s/%dDB/FamilyHistoryDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("A4O/%s/%dDB/FamilyHistoryDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(histDBYear.getList(),  header, path);
 			histDBYear.setChanged(false);
 		}

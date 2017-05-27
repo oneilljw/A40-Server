@@ -52,7 +52,7 @@ public class DBManager
 		
 		try 
 		{
-			importDBYears(String.format("%s/PermanentDB/dbyears.csv", System.getProperty("user.dir")), "Data base Years");
+			importDBYears(String.format("%s/A4O/PermanentDB/dbyears.csv", System.getProperty("user.dir")), "Data base Years");
 		} 
 		catch (FileNotFoundException e) 
 		{
@@ -237,7 +237,7 @@ public class DBManager
 	void exportDBYearsList()
 	{
 		String[] header = {"Year", "Locked?"};
-		String path = String.format("%s/PermanentDB/dbyears.csv", System.getProperty("user.dir"));
+		String path = String.format("%s/A4O/PermanentDB/dbyears.csv", System.getProperty("user.dir"));
 		 try 
 		    {
 		    	CSVWriter writer = new CSVWriter(new FileWriter(path));

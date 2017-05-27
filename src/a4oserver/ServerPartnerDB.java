@@ -36,7 +36,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			//add the list for the year to the db
 			partnerDB.add(partnerDBYear);
 					
-			importDB(year, String.format("%s/%dDB/OrgDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/OrgDB.csv",
 						System.getProperty("user.dir"),
 							year), "Partner DB", ORGANIZATION_DB_HEADER_LENGTH);
 			
@@ -464,7 +464,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	 			"Prior Year Requested",	"Prior Year Assigned", "Prior Year Delivered",
 	 			"Prior Year Received Before, Prior Year Received After"};
 		
-		String path = String.format("%s/PartnerPerformance.csv", System.getProperty("user.dir"));
+		String path = String.format("A4O/%s/PartnerPerformance.csv", System.getProperty("user.dir"));
 		exportDBToCSV(pyPerformancePartnerList, header, path);
 	}
 	
@@ -501,7 +501,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		if(partnerDBYear.isUnsaved())
 		{
 //			System.out.println(String.format("PartnerDB save() - Saving Partner DB"));
-			String path = String.format("%s/%dDB/OrgDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/OrgDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(partnerDBYear.getList(),  header, path);
 			partnerDBYear.setChanged(false);
 		}

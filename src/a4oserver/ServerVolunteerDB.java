@@ -42,7 +42,7 @@ public class ServerVolunteerDB extends ServerSeasonalDB
 			driverDB.add(volunteerDBYear);
 									
 			//import the volunteers from persistent store
-			importDB(year, String.format("%s/%dDB/DriverDB.csv",
+			importDB(year, String.format("/%s/A4O/%dDB/DriverDB.csv",
 					System.getProperty("user.dir"),
 						year), "Driver DB", DRIVER_DB_HEADER_LENGTH);
 		
@@ -393,7 +393,7 @@ public class ServerVolunteerDB extends ServerSeasonalDB
 			 			"Group", "Comment", "Qty", "# Del. Assigned", "#Sign-Ins", "Time Stamp", "Changed By",
 			 			"Stoplight Pos", "Stoplight Mssg", "Changed By"};
 			 
-			String path = String.format("%s/%dDB/DriverDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/DriverDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(volunteerDBYear.getList(),  driverHeader, path);
 			volunteerDBYear.setChanged(false);
 		}

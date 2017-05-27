@@ -36,7 +36,7 @@ public class ServerMealDB extends ServerSeasonalDB
 			mealDB.add(mealDBYear);
 							
 			//import the meals from persistent store
-			importDB(year, String.format("%s/%dDB/MealDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/MealDB.csv",
 					System.getProperty("user.dir"),
 						year), "Meal DB", MEAL_DB_HEADER_LENGTH);
 			
@@ -272,7 +272,7 @@ public class ServerMealDB extends ServerSeasonalDB
 		if(mealDBYear.isUnsaved())
 		{
 //			System.out.println(String.format("ServerMealDB save() - Saving Meal DB"));
-			String path = String.format("%s/%dDB/MealDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/MealDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(mealDBYear.getList(), header, path);
 			mealDBYear.setChanged(false);
 		}

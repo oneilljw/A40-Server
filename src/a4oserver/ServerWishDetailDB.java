@@ -46,7 +46,7 @@ public class ServerWishDetailDB extends ServerPermanentDB
 			detailDBYear.setNextID(getNextID(detailDBYear.getList()));
 		}
 */		
-		importDB(String.format("%s/PermanentDB/%s", System.getProperty("user.dir"), DETAIL_FILENAME), "Wish Detail", DETAIL_RECORD_LENGTH);
+		importDB(String.format("%s/A4O/PermanentDB/%s", System.getProperty("user.dir"), DETAIL_FILENAME), "Wish Detail", DETAIL_RECORD_LENGTH);
 		nextID = getNextID(wdDB);
 		bSaveRequired = false;
 	}

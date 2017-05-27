@@ -45,7 +45,7 @@ public class ServerInventoryDB extends ServerPermanentDB
 		clientMgr = ClientManager.getInstance();
 		
 		invList = new ArrayList<InventoryItem>();
-		importDB(String.format("%s/PermanentDB/%s", System.getProperty("user.dir"), INVENTORYDB_FILENAME), "Inventory DB", getExportHeader().length);
+		importDB(String.format("%s/A4O/PermanentDB/%s", System.getProperty("user.dir"), INVENTORYDB_FILENAME), "Inventory DB", getExportHeader().length);
 		nextID = getNextID(invList);
 		bSaveRequired = false;
 		

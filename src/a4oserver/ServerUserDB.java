@@ -42,7 +42,7 @@ public class ServerUserDB extends ServerPermanentDB
 		
 		userAL = new ArrayList<ONCServerUser>();
 //		System.out.println(String.format("ServerUserDB filename: %s", System.getProperty("user.dir") + USERDB_FILENAME));
-		importDB(String.format("%s/PermanentDB/%s", System.getProperty("user.dir"), USERDB_FILENAME), "User DB", USER_RECORD_LENGTH);
+		importDB(String.format("%s/A4O/PermanentDB/%s", System.getProperty("user.dir"), USERDB_FILENAME), "User DB", USER_RECORD_LENGTH);
 		nextID = getNextID(userAL);
 		bSaveRequired = false;
 		

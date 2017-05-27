@@ -38,7 +38,7 @@ public class ServerGlobalVariableDB extends ServerSeasonalDB
 		for(int year = BASE_YEAR; year < BASE_YEAR + DBManager.getNumberOfYears(); year++)
 		{
 			//create the global variable object for each year
-			String gvFile = String.format("%s/%dDB/GlobalVariables.csv", System.getProperty("user.dir"), year);
+			String gvFile = String.format("%s/A4O/%dDB/GlobalVariables.csv", System.getProperty("user.dir"), year);
 			GlobalVariableDBYear globalDBYear = new GlobalVariableDBYear(year, gvFile);
 									
 			//add the object for the year to the db
@@ -263,7 +263,7 @@ public class ServerGlobalVariableDB extends ServerSeasonalDB
 		GlobalVariableDBYear gvDBYear = globalDB.get(year - BASE_YEAR);
 		if(gvDBYear.isUnsaved())
 		{
-			String path = String.format("%s/%dDB/GlobalVariables.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/GlobalVariables.csv", System.getProperty("user.dir"), year);
 			File oncwritefile = new File(path);
 			
 			try 

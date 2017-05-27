@@ -32,7 +32,7 @@ public class ApartmentDB
 		aptList = new ArrayList<Address>();
 		if(aptList.size() == 0)
 		{
-			readApartmentDBFromFile(System.getProperty("user.dir") +"/PermanentDB/ApartmentDB.csv");
+			readApartmentDBFromFile(System.getProperty("user.dir") +"/A4O/PermanentDB/ApartmentDB.csv");
 //			Collections.sort(aptList, new AddressStreetNameComparator());	//sort region list by street name
 			createHashTable();
 		}
@@ -161,7 +161,7 @@ public class ApartmentDB
 		String[] header = {"House #", "Suffix", "Direction", "Street Name", "Street Type", 
 							"Post Dir","Unit #", "City", "Zip Code"};
 		
-		String path = System.getProperty("user.dir") + "/PermanentDB/ApartmentDB.csv";
+		String path = System.getProperty("user.dir") + "/A4O/PermanentDB/ApartmentDB.csv";
 		File oncwritefile = new File(path);
 			
 		try 

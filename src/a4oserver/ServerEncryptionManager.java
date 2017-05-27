@@ -42,7 +42,7 @@ public class ServerEncryptionManager
 		
 		try 
 		{
-			importKeyMap(String.format("%s/Keys.csv", System.getProperty("user.dir")), "Key List");
+			importKeyMap(String.format("%s/A4O/Keys.csv", System.getProperty("user.dir")), "Key List");
 		} 
 		catch (FileNotFoundException e) 
 		{

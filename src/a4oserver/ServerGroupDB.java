@@ -31,7 +31,7 @@ public class ServerGroupDB extends ServerPermanentDB
 	private ServerGroupDB() throws FileNotFoundException, IOException
 	{
 		groupList = new ArrayList<ONCGroup>();
-		importDB(String.format("%s/PermanentDB/%s", System.getProperty("user.dir"), GROUP_DB_FILENAME), "Group DB", GROUP_RECORD_LENGTH);
+		importDB(String.format("%s/A4O/PermanentDB/%s", System.getProperty("user.dir"), GROUP_DB_FILENAME), "Group DB", GROUP_RECORD_LENGTH);
 		nextID = getNextID(groupList);
 		bSaveRequired = false;
 	}

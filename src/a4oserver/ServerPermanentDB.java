@@ -54,7 +54,7 @@ public abstract class ServerPermanentDB extends A4OServerDB
 	{
 		if(bSaveRequired)
 		{
-			String path = String.format("%s/PermanentDB/%s",System.getProperty("user.dir"), getFileName());
+			String path = String.format("%s/A4O/PermanentDB/%s",System.getProperty("user.dir"), getFileName());
 			File oncwritefile = new File(path);
 		
 			try 

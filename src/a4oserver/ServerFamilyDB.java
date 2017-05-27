@@ -80,7 +80,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			familyDB.add(fDBYear);
 			
 			//import the families from persistent store
-			importDB(year, String.format("%s/%dDB/NewFamilyDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/NewFamilyDB.csv",
 					System.getProperty("user.dir"),
 						year), "FamilyDB", FAMILYDB_HEADER_LENGTH);
 			
@@ -994,7 +994,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		if(fDBYear.isUnsaved())
 			
 		{
-			String path = String.format("%s/%dDB/NewFamilyDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/NewFamilyDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(fDBYear.getList(), header, path);
 			fDBYear.setChanged(false);
 		}

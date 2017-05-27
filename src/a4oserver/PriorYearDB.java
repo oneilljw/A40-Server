@@ -35,7 +35,7 @@ public class PriorYearDB extends ServerSeasonalDB
 			pycDB.add(pycDBYear);
 									
 			//import from persistent store		
-			importDB(year, String.format("%s/%dDB/PriorYearChildDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/PriorYearChildDB.csv",
 						System.getProperty("user.dir"),
 							year), "Prior Year Child DB", PY_CHILD_DB_HEADER_LENGTH);
 					
@@ -355,7 +355,7 @@ public class PriorYearDB extends ServerSeasonalDB
 		if(pycDBYear.isUnsaved())
 		{
 			//	System.out.println(String.format("FamilyDB saveDB - Saving Family DB"));
-			String path = String.format("%s/%dDB/PriorYearChildDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/PriorYearChildDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(pycDBYear.getList(), header, path);
 			pycDBYear.setChanged(false);
 		}

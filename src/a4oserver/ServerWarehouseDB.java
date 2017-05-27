@@ -39,7 +39,7 @@ public class ServerWarehouseDB extends ServerSeasonalDB
 			warehouseDB.add(warehouseDBYear);
 									
 			//import the volunteers from persistent store
-			importDB(year, String.format("%s/%dDB/WarehouseDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/WarehouseDB.csv",
 					System.getProperty("user.dir"),
 						year), "Warehouse DB", WAREHOUSE_DB_HEADER_LENGTH);
 									
@@ -124,7 +124,7 @@ public class ServerWarehouseDB extends ServerSeasonalDB
 		 {
 			String[] warehouseHeader = {"Log ID", "Volunteer ID" , "Group", "Comment", "Timestamp"};
 			 
-			String path = String.format("%s/%dDB/WarehouseDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/WarehouseDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(warehouseDBYear.getList(), warehouseHeader, path);
 			warehouseDBYear.setChanged(false);
 		}

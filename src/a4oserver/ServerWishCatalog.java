@@ -45,7 +45,7 @@ public class ServerWishCatalog extends ServerPermanentDB
 //			catalogDBYear.setNextID(getNextID(catalogDBYear.getList()));
 //		}
 		
-		importDB(String.format("%s/PermanentDB/%s", System.getProperty("user.dir"), CATALOG_FILENAME), "Wish Catalog", CATALOG_RECORD_LENGTH);
+		importDB(String.format("%s/A4O/PermanentDB/%s", System.getProperty("user.dir"), CATALOG_FILENAME), "Wish Catalog", CATALOG_RECORD_LENGTH);
 		nextID = getNextID(catalogDB);
 		bSaveRequired = false;
 	}

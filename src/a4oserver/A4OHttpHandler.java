@@ -42,15 +42,15 @@ import com.google.gson.Gson;
 
 public class A4OHttpHandler implements HttpHandler
 {
-	private static final String REFERRAL_STATUS_HTML = "ScrollFamTable.htm";
-	private static final String ONC_ELF_PAGE_HTML = "ONC.htm";
-	private static final String UPDATE_HTML = "NewEdit.htm";
-	private static final String LOGOUT_HTML = "logout.htm";
-	private static final String MAINTENANCE_HTML = "maintenance.htm";
-	private static final String REFERRAL_HTML = "FamilyReferral.htm";
-	private static final String CHANGE_PASSWORD_HTML = "Change.htm";
-	private static final String DRIVER_REGISTRATION_HTML = "DriverReg.htm";
-	private static final String VOLUNTEER_SIGN_IN_HTML = "WarehouseSignIn.htm";
+	private static final String REFERRAL_STATUS_HTML = "/A4O/ScrollFamTable.htm";
+	private static final String ONC_ELF_PAGE_HTML = "/A4O/ONC.htm";
+	private static final String UPDATE_HTML = "/A4O/NewEdit.htm";
+	private static final String LOGOUT_HTML = "/A4O/logout.htm";
+	private static final String MAINTENANCE_HTML = "/A4O/maintenance.htm";
+	private static final String REFERRAL_HTML = "/A4O/FamilyReferral.htm";
+	private static final String CHANGE_PASSWORD_HTML = "/A4O/Change.htm";
+	private static final String DRIVER_REGISTRATION_HTML = "/A4O/DriverReg.htm";
+	private static final String VOLUNTEER_SIGN_IN_HTML = "/A4O/WarehouseSignIn.htm";
 	private static final int FAMILY_STOPLIGHT_RED = 2;
 	private static final long DAYS_TO_MILLIS = 1000 * 60 * 60 * 24; 
 	private static final int HTTP_OK = 200;
@@ -484,39 +484,39 @@ public class A4OHttpHandler implements HttpHandler
     	}
     	else if(requestURI.contains("/a4osplash"))
     	{
-    		sendFile(t, "image/png", "a4osplash.png");
+    		sendFile(t, "image/png", "/A4O/a4osplash.png");
     	}
     	else if(requestURI.contains("/clearx"))
     	{
-    		sendFile(t, "image/gif", "clear_x.gif");
+    		sendFile(t, "image/gif", "/A4O/clear_x.gif");
     	}
     	else if(requestURI.contains("/a4ologo"))
     	{
-    		sendFile(t, "image/png", "a4osplash.png");    	
+    		sendFile(t, "image/png", "/A4O/a4osplash.png");    	
     	}
     	else if(requestURI.contains("/favicon.ico"))
     	{
-    		sendFile(t, "image/x-icon ", "ONC.ico");    	
+    		sendFile(t, "image/x-icon ", "/A4O/ONC.ico");    	
     	}   	
     	else if(requestURI.contains("/vanilla.ttf"))
     	{
-    		sendFile(t, "application/octet-stream", "vanilla.ttf");  	
+    		sendFile(t, "application/octet-stream", "/A4O/vanilla.ttf");  	
     	}
     	else if(requestURI.contains("/oncstylesheet"))
     	{
-    		sendFile(t, "text/css", "ONCStyleSheet.css");
+    		sendFile(t, "text/css", "/A4O/ONCStyleSheet.css");
     	}
     	else if(requestURI.contains("/oncdialogstylesheet"))
     	{
-    		sendFile(t, "text/css", "ONCDialogStyleSheet.css");
+    		sendFile(t, "text/css", "/A4O/ONCDialogStyleSheet.css");
     	}
     	else if(requestURI.contains("/jquery.js"))
     	{
-    		sendFile(t, "text/javascript", "jquery-1.11.3.js");
+    		sendFile(t, "text/javascript", "/A4O/jquery-1.11.3.js");
     	}
     	else if(requestURI.contains("/commonfamily.js"))
     	{
-    		sendFile(t, "text/javascript", "CommonFamily.js");
+    		sendFile(t, "text/javascript", "/A4O/CommonFamily.js");
     	}
     	else if(requestURI.contains("/newfamily"))
     	{

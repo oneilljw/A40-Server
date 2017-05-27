@@ -34,7 +34,7 @@ public class ServerAdultDB extends ServerSeasonalDB
 			adultDB.add(adultDBYear);
 							
 			//import the adults from persistent store
-			importDB(year, String.format("%s/%dDB/AdultDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/AdultDB.csv",
 					System.getProperty("user.dir"),
 						year), "Meal DB", ADULT_DB_HEADER_LENGTH);
 			
@@ -190,7 +190,7 @@ public class ServerAdultDB extends ServerSeasonalDB
 		if(adultDBYear.isUnsaved())
 		{
 //			System.out.println(String.format("ServerAdultDB save() - Saving Adult DB, size= %d", adultDBYear.getList().size()));
-			String path = String.format("%s/%dDB/AdultDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/AdultDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(adultDBYear.getList(), header, path);
 			adultDBYear.setChanged(false);
 		}

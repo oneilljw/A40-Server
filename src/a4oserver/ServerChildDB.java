@@ -38,7 +38,7 @@ public class ServerChildDB extends ServerSeasonalDB
 			childDB.add(cDBYear);
 					
 			//import the children from persistent store
-			importDB(year, String.format("%s/%dDB/ChildDB.csv",
+			importDB(year, String.format("%s/A4O/%dDB/ChildDB.csv",
 					System.getProperty("user.dir"),
 						year), "Child DB", CHILD_DB_HEADER_LENGTH);
 					
@@ -477,7 +477,7 @@ public class ServerChildDB extends ServerSeasonalDB
 		 			"Wish 3 ID", "Prior Year Child ID"};
 			
 //			System.out.println(String.format("ServerChildDB save() - Saving Server Child DB"));
-			String path = String.format("%s/%dDB/ChildDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/ChildDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(cDBYear.getList(),  header, path);
 			cDBYear.setChanged(false);
 		}

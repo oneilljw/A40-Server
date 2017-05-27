@@ -37,7 +37,7 @@ public class RegionDB
 	{
 		oncIcon = appicon;
 		if(regAL.size() == 0)
-			getONCRegions(System.getProperty("user.dir") +"/regions_2015.csv");
+			getONCRegions(System.getProperty("user.dir") +"/A4O/regions_2015.csv");
 		
 		//build hash index array. Used to quickly search the regions list. Hash is based on first character
 		//in street name. Prior to building, sort the region list alphabetically by street name , with street
