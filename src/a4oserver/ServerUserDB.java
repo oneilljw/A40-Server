@@ -345,9 +345,8 @@ public class ServerUserDB extends ServerPermanentDB
 		
 		nextLine[1] = ServerEncryptionManager.decrypt(nextLine[1]);
 		nextLine[2] = ServerEncryptionManager.decrypt(nextLine[2]);
-			
-		userAL.add(new ONCServerUser(nextLine, date_changed.getTime()));
 		
+		userAL.add(new ONCServerUser(nextLine, date_changed.getTime()));
 	}
 	
 	void requestSave()
