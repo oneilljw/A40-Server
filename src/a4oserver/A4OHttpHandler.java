@@ -892,7 +892,6 @@ public class A4OHttpHandler implements HttpHandler
 
 	    //get file
 	    String path = String.format("%s/%s", System.getProperty("user.dir"), sheetname);
-	    System.out.println("A4OHttpHandle.sendFile: " + path);
 	    File file = new File (path);
 	    byte [] bytearray  = new byte [(int)file.length()];
 	      
