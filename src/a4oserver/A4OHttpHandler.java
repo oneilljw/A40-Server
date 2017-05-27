@@ -484,39 +484,39 @@ public class A4OHttpHandler implements HttpHandler
     	}
     	else if(requestURI.contains("/a4osplash"))
     	{
-    		sendFile(t, "image/png", "/A4O/a4osplash.png");
+    		sendFile(t, "image/png", "A4O/a4osplash.png");
     	}
     	else if(requestURI.contains("/clearx"))
     	{
-    		sendFile(t, "image/gif", "/A4O/clear_x.gif");
+    		sendFile(t, "image/gif", "A4O/clear_x.gif");
     	}
     	else if(requestURI.contains("/a4ologo"))
     	{
-    		sendFile(t, "image/png", "/A4O/a4osplash.png");    	
+    		sendFile(t, "image/png", "A4O/a4osplash.png");    	
     	}
     	else if(requestURI.contains("/favicon.ico"))
     	{
-    		sendFile(t, "image/x-icon ", "/A4O/ONC.ico");    	
+    		sendFile(t, "image/x-icon ", "A4O/ONC.ico");    	
     	}   	
     	else if(requestURI.contains("/vanilla.ttf"))
     	{
-    		sendFile(t, "application/octet-stream", "/A4O/vanilla.ttf");  	
+    		sendFile(t, "application/octet-stream", "A4O/vanilla.ttf");  	
     	}
     	else if(requestURI.contains("/oncstylesheet"))
     	{
-    		sendFile(t, "text/css", "/A4O/ONCStyleSheet.css");
+    		sendFile(t, "text/css", "A4O/ONCStyleSheet.css");
     	}
     	else if(requestURI.contains("/oncdialogstylesheet"))
     	{
-    		sendFile(t, "text/css", "/A4O/ONCDialogStyleSheet.css");
+    		sendFile(t, "text/css", "A4O/ONCDialogStyleSheet.css");
     	}
     	else if(requestURI.contains("/jquery.js"))
     	{
-    		sendFile(t, "text/javascript", "/A4O/jquery-1.11.3.js");
+    		sendFile(t, "text/javascript", "A4O/jquery-1.11.3.js");
     	}
     	else if(requestURI.contains("/commonfamily.js"))
     	{
-    		sendFile(t, "text/javascript", "/A4O/CommonFamily.js");
+    		sendFile(t, "text/javascript", "A4O/CommonFamily.js");
     	}
     	else if(requestURI.contains("/newfamily"))
     	{
@@ -892,6 +892,7 @@ public class A4OHttpHandler implements HttpHandler
 
 	    //get file
 	    String path = String.format("%s/%s", System.getProperty("user.dir"), sheetname);
+	    System.out.println("A4OHttpHandle.sendFile: " + path);
 	    File file = new File (path);
 	    byte [] bytearray  = new byte [(int)file.length()];
 	      
