@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import ourneighborschild.ONCVolunteer;
+import actforothers.ONCVolunteer;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

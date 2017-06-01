@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
-import ourneighborschild.ONCServerUser;
+import actforothers.ONCServerUser;
 
 public class WebClient
 {

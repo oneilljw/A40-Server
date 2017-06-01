@@ -2,7 +2,7 @@ package a4oserver;
 
 import java.util.List;
 
-import ourneighborschild.ONCObject;
+import actforothers.ONCObject;
 
 public abstract class ServerDBYear 
 {

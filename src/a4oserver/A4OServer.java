@@ -13,7 +13,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import ourneighborschild.OSXAdapter;
+import actforothers.OSXAdapter;
 
 public class A4OServer
 {

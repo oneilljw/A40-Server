@@ -19,21 +19,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import ourneighborschild.Address;
-import ourneighborschild.AddressValidation;
-import ourneighborschild.AdultGender;
-import ourneighborschild.MealStatus;
-import ourneighborschild.MealType;
-import ourneighborschild.ONCAdult;
-import ourneighborschild.ONCChild;
-import ourneighborschild.ONCFamily;
-import ourneighborschild.ONCMeal;
-import ourneighborschild.ONCServerUser;
-import ourneighborschild.ONCUser;
-import ourneighborschild.Transportation;
-import ourneighborschild.UserAccess;
-import ourneighborschild.UserPermission;
-import ourneighborschild.UserStatus;
+import actforothers.Address;
+import actforothers.AddressValidation;
+import actforothers.AdultGender;
+import actforothers.MealStatus;
+import actforothers.MealType;
+import actforothers.ONCAdult;
+import actforothers.ONCChild;
+import actforothers.ONCFamily;
+import actforothers.ONCMeal;
+import actforothers.ONCServerUser;
+import actforothers.ONCUser;
+import actforothers.Transportation;
+import actforothers.UserAccess;
+import actforothers.UserPermission;
+import actforothers.UserStatus;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -73,7 +73,8 @@ public class A4OHttpHandler implements HttpHandler
     	if(requestURI.equals("/welcome"))
     	{
     		String response = null;
-    		try {
+    		try 
+    		{
     			if(A4OWebServer.isWebsiteOnline())
     			{
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), LOGOUT_HTML));
@@ -84,7 +85,9 @@ public class A4OHttpHandler implements HttpHandler
     				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), MAINTENANCE_HTML));
     				response = response.replace("TIME_BACK_UP", A4OWebServer.getWebsiteTimeBackOnline());
     			}
-    		} catch (IOException e) {
+    		} 
+    		catch (IOException e) 
+    		{
     			// TODO Auto-generated catch block
     			e.printStackTrace();
     		}
@@ -125,7 +128,7 @@ public class A4OHttpHandler implements HttpHandler
     		
     		Headers header = t.getResponseHeaders();
     		ArrayList<String> headerList = new ArrayList<String>();
-    		headerList.add("http://www.ourneighborschild.org");
+    		headerList.add("http://www.actforothers.org");
     		header.put("Location", headerList);
   	
     		sendHTMLResponse(t, new HtmlResponse("", HTTPCode.Redirect));
@@ -135,7 +138,7 @@ public class A4OHttpHandler implements HttpHandler
     	{
     		Headers header = t.getResponseHeaders();
     		ArrayList<String> headerList = new ArrayList<String>();
-    		headerList.add("http://www.ourneighborschild.org");
+    		headerList.add("http://www.actforothers.org");
     		header.put("Location", headerList);
   	
     		sendHTMLResponse(t, new HtmlResponse("", HTTPCode.Redirect));
@@ -166,7 +169,7 @@ public class A4OHttpHandler implements HttpHandler
     			//send the user back to the ONC general web site
     			Headers header = t.getResponseHeaders();
     			ArrayList<String> headerList = new ArrayList<String>();
-    			headerList.add("http://www.ourneighborschild.org");
+    			headerList.add("http://www.actforothers.org");
     			header.put("Location", headerList);
     			sendHTMLResponse(t, new HtmlResponse("", HTTPCode.Redirect));
     		}	

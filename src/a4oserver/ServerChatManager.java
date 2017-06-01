@@ -1,6 +1,6 @@
 package a4oserver;
 
-import ourneighborschild.ChatMessage;
+import actforothers.ChatMessage;
 
 import com.google.gson.Gson;
 

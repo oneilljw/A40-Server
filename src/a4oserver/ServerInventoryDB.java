@@ -16,11 +16,11 @@ import javax.swing.JOptionPane;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import ourneighborschild.InventoryChange;
-import ourneighborschild.InventoryItem;
-import ourneighborschild.InventoryRequest;
-import ourneighborschild.ONCObject;
-import ourneighborschild.UPCFailure;
+import actforothers.InventoryChange;
+import actforothers.InventoryItem;
+import actforothers.InventoryRequest;
+import actforothers.ONCObject;
+import actforothers.UPCFailure;
 
 public class ServerInventoryDB extends ServerPermanentDB
 {

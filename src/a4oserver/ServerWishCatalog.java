@@ -6,8 +6,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import ourneighborschild.ONCObject;
-import ourneighborschild.ONCWish;
+import actforothers.ONCObject;
+import actforothers.ONCWish;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

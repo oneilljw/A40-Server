@@ -16,7 +16,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
-import ourneighborschild.DBYear;
+import actforothers.DBYear;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

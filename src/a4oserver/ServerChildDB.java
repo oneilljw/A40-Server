@@ -6,12 +6,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import ourneighborschild.ONCChild;
-import ourneighborschild.ONCChildWish;
-import ourneighborschild.ONCWebChild;
-import ourneighborschild.ONCPartner;
-import ourneighborschild.WebChildWish;
-import ourneighborschild.WishStatus;
+import actforothers.ONCChild;
+import actforothers.ONCChildWish;
+import actforothers.ONCWebChild;
+import actforothers.ONCPartner;
+import actforothers.WebChildWish;
+import actforothers.WishStatus;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

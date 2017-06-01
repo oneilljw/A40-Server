@@ -1,6 +1,6 @@
 package a4oserver;
 
-import ourneighborschild.ONCObject;
+import actforothers.ONCObject;
 
 /*******
  * Class is used when importing families from Britepaths. Provides for determining whether

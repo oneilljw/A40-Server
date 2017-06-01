@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import ourneighborschild.MealStatus;
-import ourneighborschild.ONCMeal;
+import actforothers.MealStatus;
+import actforothers.ONCMeal;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

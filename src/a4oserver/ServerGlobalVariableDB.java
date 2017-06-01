@@ -12,8 +12,8 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-import ourneighborschild.ONCObject;
-import ourneighborschild.ServerGVs;
+import actforothers.ONCObject;
+import actforothers.ServerGVs;
 
 import com.google.gson.Gson;
 

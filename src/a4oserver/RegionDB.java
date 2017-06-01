@@ -11,8 +11,8 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-import ourneighborschild.Address;
-import ourneighborschild.Region;
+import actforothers.Address;
+import actforothers.Region;
 
 import com.google.gson.Gson;
 

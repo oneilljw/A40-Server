@@ -13,11 +13,11 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import ourneighborschild.GroupType;
-import ourneighborschild.ONCGroup;
-import ourneighborschild.ONCObject;
-import ourneighborschild.ONCServerUser;
-import ourneighborschild.UserPermission;
+import actforothers.GroupType;
+import actforothers.ONCGroup;
+import actforothers.ONCObject;
+import actforothers.ONCServerUser;
+import actforothers.UserPermission;
 
 public class ServerGroupDB extends ServerPermanentDB 
 {

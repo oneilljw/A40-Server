@@ -12,8 +12,8 @@ import java.util.UUID;
 import javax.swing.ImageIcon;
 import javax.swing.Timer;
 
-import ourneighborschild.ONCServerUser;
-import ourneighborschild.ONCUser;
+import actforothers.ONCServerUser;
+import actforothers.ONCUser;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
