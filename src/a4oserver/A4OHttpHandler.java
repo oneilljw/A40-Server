@@ -7,7 +7,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,15 +65,30 @@ public class A4OHttpHandler implements HttpHandler
 	
 	public void handle(HttpExchange t) throws IOException 
     {
-    	@SuppressWarnings("unchecked")
-		Map<String, Object> params = (Map<String, Object>)t.getAttribute("parameters");
-    	
     	String requestURI = t.getRequestURI().toASCIIString();
     	
     	String mssg = String.format("HTTP request %s: %s:%s", t.getRemoteAddress().toString(), t.getRequestMethod(), requestURI);
 		ServerUI serverUI = ServerUI.getInstance();
 		serverUI.addLogMessage(mssg);
-    	
+		
+		//create parameters map
+		Map<String, Object> params = null;
+		String method = t.getRequestMethod();
+		if(method.equals("GET"))
+		{
+			URI requestedUri = t.getRequestURI();
+			String query = requestedUri.getRawQuery();
+			params = parseQuery(query);
+		}
+		else if(method.equals("POST"))
+		{
+			InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "utf-8");
+			BufferedReader br = new BufferedReader(isr);
+			String query = br.readLine();
+			params = parseQuery(query);
+		}
+		
+		//check to see which context request was received
     	if(requestURI.equals("/welcome"))
     	{
     		String response = null;
@@ -123,7 +142,7 @@ public class A4OHttpHandler implements HttpHandler
     			ClientManager clientMgr = ClientManager.getInstance();
     		
     			if(!clientMgr.logoutWebClient(sessionID))
-    				clientMgr.addLogMessage(String.format("ONCHttpHandler.handle/logut: logout failure, client %s not found", sessionID));
+    				clientMgr.addLogMessage(String.format("A4OHttpHandler.handle/logut: logout failure, client %s not found", sessionID));
     		} 
     		
     		Headers header = t.getResponseHeaders();
@@ -166,7 +185,7 @@ public class A4OHttpHandler implements HttpHandler
     		}
     		else
     		{	
-    			//send the user back to the ONC general web site
+    			//send the user back to the A4O general web site
     			Headers header = t.getResponseHeaders();
     			ArrayList<String> headerList = new ArrayList<String>();
     			headerList.add("http://www.actforothers.org");
@@ -747,7 +766,6 @@ public class A4OHttpHandler implements HttpHandler
     	{
     		String response = null;
     		
-       		
     		try 
     		{	
 				response = readFile(String.format("%s/%s",System.getProperty("user.dir"), VOLUNTEER_SIGN_IN_HTML));
@@ -829,7 +847,7 @@ public class A4OHttpHandler implements HttpHandler
     			else if(retCode == -2)
     			{
     				response = "<!DOCTYPE html><html><head lang=\"en\"><title>Password Change Failed</title>"
-    						+ "</head><body><p>Change password failed, user couldn't be located, please contact ONC Exec Dir</p></body></html>";
+    						+ "</head><body><p>Change password failed, user couldn't be located, please contact A4O Exec Dir</p></body></html>";
     			}
     		}
     		else
@@ -910,6 +928,56 @@ public class A4OHttpHandler implements HttpHandler
 	    os.write(bytearray,0,bytearray.length);
 	    os.close();
 	    t.close();
+	}
+	
+	Map<String, Object> parseQuery(String query) throws UnsupportedEncodingException 
+	{
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		
+		if (query != null)
+		{
+			String pairs[] = query.split("[&]");
+
+			for(String pair : pairs) 
+			{
+				String param[] = pair.split("[=]");
+
+				String key = null;
+				String value = null;
+				if (param.length > 0)
+				{
+					key = URLDecoder.decode(param[0], System.getProperty("file.encoding"));
+				}
+
+				if (param.length > 1) 
+				{
+					value = URLDecoder.decode(param[1], System.getProperty("file.encoding"));
+				}
+
+				if (parameters.containsKey(key)) 
+				{
+					Object obj = parameters.get(key);
+					if (obj instanceof List<?>) 
+					{
+						List<String> values = (List<String>) obj;
+						values.add(value);
+					} 
+					else if (obj instanceof String) 
+					{
+						List<String> values = new ArrayList<String>();
+						values.add((String) obj);
+						values.add(value);
+						parameters.put(key, values);
+					}
+				} 
+				else 
+				{
+					parameters.put(key, value);
+				}
+			}
+		}
+		
+		return parameters;
 	}
 	
 	HtmlResponse loginRequest(String method, Map<String, Object> params, HttpExchange t)
