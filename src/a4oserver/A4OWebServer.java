@@ -91,9 +91,9 @@ public class A4OWebServer
 		HttpsServer server = null;
 		try 
 		{
-			Provider[] providers = Security.getProviders();
-			for(Provider p : providers)
-				System.out.println(String.format("Provider: %s", p.getName()));
+//			Provider[] providers = Security.getProviders();
+//			for(Provider p : providers)
+//				System.out.println(String.format("Provider: %s", p.getName()));
 			
 			// load certificate
 			FileInputStream fIn = new FileInputStream(keystoreFilename);
