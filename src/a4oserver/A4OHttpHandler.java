@@ -63,6 +63,9 @@ public class A4OHttpHandler implements HttpHandler
 	private static final String NO_GIFTS_REQUESTED_TEXT = "Gift assistance not requested";
 	private static final String GIFTS_REQUESTED_KEY = "giftreq";
 	
+	private static final boolean B_SERVER_SECURE = true;
+	
+	@SuppressWarnings("unchecked")
 	public void handle(HttpExchange t) throws IOException 
     {
     	String requestURI = t.getRequestURI().toASCIIString();
@@ -74,18 +77,22 @@ public class A4OHttpHandler implements HttpHandler
 		//create parameters map
 		Map<String, Object> params = null;
 		String method = t.getRequestMethod();
-		if(method.equals("GET"))
+		if(B_SERVER_SECURE && method.equals("GET"))
 		{
 			URI requestedUri = t.getRequestURI();
 			String query = requestedUri.getRawQuery();
 			params = parseQuery(query);
 		}
-		else if(method.equals("POST"))
+		else if(B_SERVER_SECURE && method.equals("POST"))
 		{
 			InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "utf-8");
 			BufferedReader br = new BufferedReader(isr);
 			String query = br.readLine();
 			params = parseQuery(query);
+		}
+		else if(!B_SERVER_SECURE)
+		{
+			params = (Map<String, Object>)t.getAttribute("parameters");
 		}
 		
 		//check to see which context request was received
@@ -147,7 +154,7 @@ public class A4OHttpHandler implements HttpHandler
     		
     		Headers header = t.getResponseHeaders();
     		ArrayList<String> headerList = new ArrayList<String>();
-    		headerList.add("http://www.actforothers.org");
+    		headerList.add("http://www.act4others.org");
     		header.put("Location", headerList);
   	
     		sendHTMLResponse(t, new HtmlResponse("", HTTPCode.Redirect));
@@ -157,7 +164,7 @@ public class A4OHttpHandler implements HttpHandler
     	{
     		Headers header = t.getResponseHeaders();
     		ArrayList<String> headerList = new ArrayList<String>();
-    		headerList.add("http://www.actforothers.org");
+    		headerList.add("http://www.act4others.org");
     		header.put("Location", headerList);
   	
     		sendHTMLResponse(t, new HtmlResponse("", HTTPCode.Redirect));
@@ -188,7 +195,7 @@ public class A4OHttpHandler implements HttpHandler
     			//send the user back to the A4O general web site
     			Headers header = t.getResponseHeaders();
     			ArrayList<String> headerList = new ArrayList<String>();
-    			headerList.add("http://www.actforothers.org");
+    			headerList.add("http://www.act4others.org");
     			header.put("Location", headerList);
     			sendHTMLResponse(t, new HtmlResponse("", HTTPCode.Redirect));
     		}	

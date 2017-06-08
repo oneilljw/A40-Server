@@ -7,6 +7,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.Provider;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
@@ -19,7 +21,8 @@ import javax.net.ssl.TrustManagerFactory;
 import actforothers.WebsiteStatus;
 
 import com.google.gson.Gson;
-
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
@@ -74,19 +77,24 @@ public class A4OWebServer
 		
 		return instance;
 	}
-*/
-	
+
+*/	
 	private A4OWebServer()
 	{
 		ServerUI serverUI = ServerUI.getInstance();
 		
-		String keystoreFilename = System.getProperty("user.dir") + "/A4O/a4o.keystore";
+//		String keystoreFilename = System.getProperty("user.dir") + "/A4O/a4o.keystore";
+		String keystoreFilename = System.getProperty("user.dir") + "/A4O/a4o.jks";
 		char[] storepass = "mypassword".toCharArray();
 		char[] keypass = "mypassword".toCharArray();		
 		
 		HttpsServer server = null;
 		try 
 		{
+			Provider[] providers = Security.getProviders();
+			for(Provider p : providers)
+				System.out.println(String.format("Provider: %s", p.getName()));
+			
 			// load certificate
 			FileInputStream fIn = new FileInputStream(keystoreFilename);
 			KeyStore keystore = KeyStore.getInstance("JKS");
