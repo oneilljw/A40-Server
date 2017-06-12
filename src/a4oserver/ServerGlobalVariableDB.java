@@ -24,7 +24,7 @@ public class ServerGlobalVariableDB extends ServerSeasonalDB
 {
 	private static final int GV_HEADER_LENGTH = 7;
 	private static final int GV_ALTERNATE_HEADER_LENGTH = 24;
-	private static final String DEFAULT_ADDRESS = "6476+Trillium+House+Lane+Centreville,VA";
+	private static final String DEFAULT_ADDRESS = "12000+Government+Center+Pkwy+Fairfax,VA";
 	
 	private static ServerGlobalVariableDB instance = null;
 	private List<GlobalVariableDBYear> globalDB;
