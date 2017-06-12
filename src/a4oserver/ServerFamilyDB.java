@@ -61,7 +61,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	
 	//THIS IS A TEMPORARY HACK FOR 2016 - NEED TO HAVE ONC NUM RANGES GENERATED AUTOMATICALLY
 	int[] oncnumRegionRanges = {1299,100,125,140,240,490,494,525,585,700,733,755,760,763,766,
-								773,900,920,1065,1066,1071,1080,1115,1145,1160,1260,1261};
+							773,900,920,1065,1066,1071,1080,1115,1145,1160,1260,1261};
 	
 	private ServerFamilyDB() throws FileNotFoundException, IOException
 	{
@@ -775,7 +775,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	    //determine the proper family gift status for the family after adding the wish. If the
 		//family gifts have already been packaged, then don't perform the test
 	    FamilyGiftStatus newGiftStatus;
-	    if(fam.getGiftStatus().compareTo(FamilyGiftStatus.Packaged) < 0)
+	    if(fam.getGiftStatus().compareTo(FamilyGiftStatus.Exported) < 0)
 	    	newGiftStatus = getLowestGiftStatus(year, famID);
 	    else
 	    	newGiftStatus = fam.getGiftStatus();
