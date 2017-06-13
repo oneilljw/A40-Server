@@ -103,7 +103,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 			//find the last object, there has to be one for the status > Assigned
 			ONCFamilyHistory latestFHObj = getLastFamilyHistory(year, addedHistoryObj.getFamID());
 			if(latestFHObj != null)
-				addedHistoryObj.setdDelBy(latestFHObj.getdDelBy());
+				addedHistoryObj.setPartnerID(latestFHObj.getPartnerID());
 		}
 		
 		//add the item to the proper year's list and mark the list as changed
@@ -131,29 +131,29 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		
 		//if there was a prior history and the gift status was associated with a delivery, update the 
 		//status and counts
-		if(priorHistoryObj != null)
-		{
-			//If prior status == ASSIGNED && new status < ASSIGNED, decrement the prior delivery driver
-			//else if the prior status == ASSIGNED and new status == ASSIGNED and the driver number changed,
-			//Decrement the prior driver deliveries and increment the new driver deliveries. Else, if the 
-			//prior status < ASSIGNED and the new status == ASSIGNED, increment the new driver deliveries
-			if(priorHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0 && 
-					addedHistoryObj.getGiftStatus() == FamilyGiftStatus.Assigned)
-			{
-				driverDB.updateDriverDeliveryCounts(year, null, addedHistoryObj.getdDelBy());
-			}
-			else if(priorHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) >= 0 && 
-					 addedHistoryObj.getGiftStatus() == FamilyGiftStatus.Assigned && 
-					  !priorHistoryObj.getdDelBy().equals(addedHistoryObj.getdDelBy()))
-			{
-				driverDB.updateDriverDeliveryCounts(year, priorHistoryObj.getdDelBy(), addedHistoryObj.getdDelBy());
-			}
-			else if(priorHistoryObj.getGiftStatus() == FamilyGiftStatus.Assigned && 
-					 addedHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0)
-			{
-				driverDB.updateDriverDeliveryCounts(year, priorHistoryObj.getdDelBy(), null);
-			}
-		}
+//		if(priorHistoryObj != null)
+//		{
+//			//If prior status == ASSIGNED && new status < ASSIGNED, decrement the prior delivery driver
+//			//else if the prior status == ASSIGNED and new status == ASSIGNED and the driver number changed,
+//			//Decrement the prior driver deliveries and increment the new driver deliveries. Else, if the 
+//			//prior status < ASSIGNED and the new status == ASSIGNED, increment the new driver deliveries
+//			if(priorHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0 && 
+//					addedHistoryObj.getGiftStatus() == FamilyGiftStatus.Assigned)
+//			{
+//				driverDB.updateDriverDeliveryCounts(year, null, addedHistoryObj.getPartnerID());
+//			}
+//			else if(priorHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) >= 0 && 
+//					 addedHistoryObj.getGiftStatus() == FamilyGiftStatus.Assigned && 
+//					  priorHistoryObj.getPartnerID() != addedHistoryObj.getPartnerID())
+//			{
+//				driverDB.updateDriverDeliveryCounts(year, priorHistoryObj.getPartnerID(), addedHistoryObj.getPartnerID());
+//			}
+//			else if(priorHistoryObj.getGiftStatus() == FamilyGiftStatus.Assigned && 
+//					 addedHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0)
+//			{
+//				driverDB.updateDriverDeliveryCounts(year, priorHistoryObj.getPartnerID(), null);
+//			}
+//		}
 		//Update the family object with new delivery
 		if(serverFamilyDB != null)
 			serverFamilyDB.updateFamilyHistory(year, addedHistoryObj);
@@ -191,29 +191,29 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		ONCFamilyHistory priorDelivery = getHistory(year, fam.getDeliveryID());
 		
 		//if there was a prior delivery, then update the status and counts
-		if(priorDelivery != null)
-		{
-			//If prior status == ASSIGNED && new status < ASSIGNED, decrement the prior delivery driver
-			//else if the prior status == ASSIGNED and new status == ASSIGNED and the driver number changed,
-			//Decrement the prior driver deliveries and increment the new driver deliveries. Else, if the 
-			//prior status < ASSIGNED and the new status == ASSIGNED, increment the new driver deliveries
-			if(priorDelivery.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0 && 
-					addedHisoryObj.getGiftStatus() == FamilyGiftStatus.Assigned)
-			{
-				driverDB.updateDriverDeliveryCounts(year, null, addedHisoryObj.getdDelBy());
-			}
-			else if(priorDelivery.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) >= 0 && 
-					 addedHisoryObj.getGiftStatus() == FamilyGiftStatus.Assigned && 
-					  !priorDelivery.getdDelBy().equals(addedHisoryObj.getdDelBy()))
-			{
-				driverDB.updateDriverDeliveryCounts(year, priorDelivery.getdDelBy(), addedHisoryObj.getdDelBy());
-			}
-			else if(priorDelivery.getGiftStatus() == FamilyGiftStatus.Assigned && 
-					 addedHisoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0)
-			{
-				driverDB.updateDriverDeliveryCounts(year, priorDelivery.getdDelBy(), null);
-			}
-		}
+//		if(priorDelivery != null)
+//		{
+//			//If prior status == ASSIGNED && new status < ASSIGNED, decrement the prior delivery driver
+//			//else if the prior status == ASSIGNED and new status == ASSIGNED and the driver number changed,
+//			//Decrement the prior driver deliveries and increment the new driver deliveries. Else, if the 
+//			//prior status < ASSIGNED and the new status == ASSIGNED, increment the new driver deliveries
+//			if(priorDelivery.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0 && 
+//					addedHisoryObj.getGiftStatus() == FamilyGiftStatus.Assigned)
+//			{
+//				driverDB.updateDriverDeliveryCounts(year, null, addedHisoryObj.getPartnerID());
+//			}
+//			else if(priorDelivery.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) >= 0 && 
+//					 addedHisoryObj.getGiftStatus() == FamilyGiftStatus.Assigned && 
+//					  priorDelivery.getPartnerID() != addedHisoryObj.getPartnerID())
+//			{
+//				driverDB.updateDriverDeliveryCounts(year, priorDelivery.getPartnerID(), addedHisoryObj.getPartnerID());
+//			}
+//			else if(priorDelivery.getGiftStatus() == FamilyGiftStatus.Assigned && 
+//					 addedHisoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) < 0)
+//			{
+//				driverDB.updateDriverDeliveryCounts(year, priorDelivery.getPartnerID(), null);
+//			}
+//		}
 		
 		//Update the family object with new delivery
 		if(serverFamilyDB != null)
@@ -260,7 +260,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 			//find the last object, there has to be one for the status > Assigned
 			ONCFamilyHistory latestFHObj = getLastFamilyHistory(year, addedFamHistObj.getFamID());
 			if(latestFHObj != null)
-				addedFamHistObj.setdDelBy(latestFHObj.getdDelBy());
+				addedFamHistObj.setPartnerID(latestFHObj.getPartnerID());
 		}
 		
 		histDBYear.add(addedFamHistObj);
@@ -377,7 +377,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		if(histDBYear.isUnsaved())
 		{
 //			System.out.println(String.format("DeliveryDB save() - Saving Delivery DB"));
-			String path = String.format("A4O/%s/%dDB/FamilyHistoryDB.csv", System.getProperty("user.dir"), year);
+			String path = String.format("%s/A4O/%dDB/FamilyHistoryDB.csv", System.getProperty("user.dir"), year);
 			exportDBToCSV(histDBYear.getList(),  header, path);
 			histDBYear.setChanged(false);
 		}

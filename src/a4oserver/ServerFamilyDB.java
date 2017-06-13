@@ -10,7 +10,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import javax.swing.JOptionPane;
@@ -50,6 +52,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	private static List<FamilyDBYear> familyDB;
 	private static ServerFamilyDB instance = null;
 	private static int highestRefNum;
+	private static Map<Integer, Integer> highestA4ONumMap;
 //	private static List<int[]> oncNumRanges;
 	
 	private static ServerFamilyHistoryDB familyHistoryDB;
@@ -70,6 +73,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		
 		familyDB = new ArrayList<FamilyDBYear>();
 		
+		//initialize the highest A4O number map
+		highestA4ONumMap = new HashMap<Integer, Integer>();
+		
 		//populate the family data base for the last TOTAL_YEARS from persistent store
 		for(int year = BASE_YEAR; year < BASE_YEAR + DBManager.getNumberOfYears(); year++)
 		{
@@ -86,6 +92,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			
 			//set the next id
 			fDBYear.setNextID(getNextID(fDBYear.getList()));
+			
+			//set the highest number in the Map
+			highestA4ONumMap.put(year, initializeHighestA4ONumber(fDBYear));
 		}
 		
 		//set the reference number
@@ -309,7 +318,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			if(bAutoAssign && !updatedFamily.getONCNum().equals("DEL") && updatedFamily.getRegion() != 0 &&
 						  !Character.isDigit(updatedFamily.getONCNum().charAt(0)))
 			{
-				updatedFamily.setONCNum(generateONCNumber(year, updatedFamily.getRegion()));
+				updatedFamily.setONCNum(generateA4ONumber(year));
 			}
 			
 			//check to see if either status is changing, if so, add a history item
@@ -317,7 +326,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				(currFam.getFamilyStatus() != updatedFamily.getFamilyStatus() || currFam.getGiftStatus() != updatedFamily.getGiftStatus()))
 			{
 				int histID = addHistoryItem(year, updatedFamily.getID(), updatedFamily.getFamilyStatus(), 
-						updatedFamily.getGiftStatus(), "", "Status Changed", updatedFamily.getChangedBy());
+						updatedFamily.getGiftStatus(), updatedFamily.getDeliveryID(), "Status Changed", updatedFamily.getChangedBy());
 				updatedFamily.setDeliveryID(histID);
 			}
 			
@@ -360,15 +369,17 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			if(bAutoAssign && !updatedFamily.getONCNum().equals("DEL") && updatedFamily.getRegion() != 0 &&
 						  !Character.isDigit(updatedFamily.getONCNum().charAt(0)))
 			{
-				updatedFamily.setONCNum(generateONCNumber(year, updatedFamily.getRegion()));
+				updatedFamily.setONCNum(generateA4ONumber(year));
 			}
 			
 			//check to see if either status is changing, if so, add a history item
 			if(currFam != null && 
 				(currFam.getFamilyStatus() != updatedFamily.getFamilyStatus() || currFam.getGiftStatus() != updatedFamily.getGiftStatus()))
 			{
+				ONCFamilyHistory currFH = familyHistoryDB.getHistory(year, currFam.getDeliveryID());
+				
 				int histID = addHistoryItem(year, updatedFamily.getID(), updatedFamily.getFamilyStatus(), 
-						updatedFamily.getGiftStatus(), "", "Status Changed", updatedFamily.getChangedBy());
+						updatedFamily.getGiftStatus(), currFH.getPartnerID(), "Status Changed", updatedFamily.getChangedBy());
 				updatedFamily.setDeliveryID(histID);
 			}
 			
@@ -432,8 +443,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			int region = updateRegion(addedFam);
 			addedFam.setRegion(region);
 		
-			//create the ONC number
-			String oncNum = generateONCNumber(year, region);
+			//create the A4O number
+			String oncNum = generateA4ONumber(year);
 			addedFam.setONCNum(oncNum);
 			
 			//set the new ID for the added family
@@ -441,7 +452,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			
 			//add to the family history 
 			int histID = addHistoryItem(year, addedFam.getID(), addedFam.getFamilyStatus(), addedFam.getGiftStatus(),
-										"", "Family Referred", addedFam.getChangedBy());
+										-1, "Family Referred", addedFam.getChangedBy());
 			addedFam.setDeliveryID(histID);
 			
 			//add to the family data base
@@ -549,9 +560,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			int region = updateRegion(addedFam);
 			addedFam.setRegion(region);
 			
-			//create the ONC number
-			String oncNum = generateONCNumber(year, region);
-			addedFam.setONCNum(oncNum);
+			//create the A4O number
+			String a4ONum = generateA4ONumber(year);
+			addedFam.setONCNum(a4ONum);
 			
 			//set the new ID for the added family
 			int famID = fDBYear.getNextID();
@@ -566,7 +577,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			
 			//add to the family history 
 			int histID = addHistoryItem(year, addedFam.getID(), addedFam.getFamilyStatus(), addedFam.getGiftStatus(),
-										"", "Family Referred", addedFam.getChangedBy());
+										-1, "Family Referred", addedFam.getChangedBy());
 			addedFam.setDeliveryID(histID);
 			
 			//add to the family data base
@@ -790,8 +801,11 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	    	{
 	    		//create a family history change
 	    		fam.setGiftStatus(newGiftStatus);
+	    		
+	    		ONCFamilyHistory currFH = familyHistoryDB.getHistory(year, fam.getDeliveryID());
+	    		
 	    		fam.setDeliveryID(addHistoryItem(year, fam.getID(), fam.getFamilyStatus(), newGiftStatus, 
-						"", "Gift Status Change", fam.getChangedBy()));
+						currFH.getPartnerID(), "Gift Status Change", fam.getChangedBy()));
 	    	}
 	    	
 	    	if(bNewGiftCardOnlyFamily != fam.isGiftCardOnly())
@@ -805,10 +819,10 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	    }
 	}
 	
-	int addHistoryItem(int year, int famID, FamilyStatus fs, FamilyGiftStatus fgs, String driverID,
+	int addHistoryItem(int year, int famID, FamilyStatus fs, FamilyGiftStatus fgs, int partnerID,
 						String reason, String changedBy)
 	{
-		ONCFamilyHistory reqFamHistObj = new ONCFamilyHistory(-1, famID, fs, fgs, driverID, reason,
+		ONCFamilyHistory reqFamHistObj = new ONCFamilyHistory(-1, famID, fs, fgs, partnerID, reason,
 				 changedBy, Calendar.getInstance(TimeZone.getTimeZone("UTC")));
 		
 		ONCFamilyHistory addedFamHistory = familyHistoryDB.addFamilyHistoryObject(year, reqFamHistObj);
@@ -1100,25 +1114,33 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		FamilyDBYear famDBYear = new FamilyDBYear(newYear);
 		familyDB.add(famDBYear);
 		famDBYear.setChanged(true);	//mark this db for persistent saving on the next save event
+		
+		//add a highest A4O number to the higest number map
+		highestA4ONumMap.put(newYear, 0);
 	}
 	
 	 /******************************************************************************************
-     * This method automatically generates an ONC Number for family that does not have an ONC
-     * number already assigned. The method uses the integer region number passed (after checking
-     * to see if it is in the valid range) and indexes into the oncnumRegionRanges array to get
-     * the starting ONC number for the region. It then queries the family array to see if that
-     * number is already in use. If it's in use, it goes to the next number to check again. It 
-     * continues until it finds an unused number or reaches the end of the range for that region.
-     * The first unused ONC number in the range is returned. If the end of the range is reached 
-     * and all numbers have been assigned, it will display an error dialog and after the user
-     * acknowledges the error, it will return string "OOR" for out of range.
-     * If the region isn't valid, it will complain and then return the string "RNV" for region
-     * not valid 
-     * @param region
-     * @return
+     * This method automatically generates an A4O Number for family 
      ********************************************************************************************/
-    String generateONCNumber(int year, int region)
+    String generateA4ONumber(int year)
     {
+    	//get the current highest number, increment it and re-save it.
+    	int highestNum = highestA4ONumMap.get(year);
+    	highestNum++;
+    	highestA4ONumMap.put(year, highestNum);
+    	
+    	//convert it to a 4 digit string and return it.
+    	if(highestNum < 10)
+    		return "000" + Integer.toString(highestNum);
+    	else if(highestNum >= 10 && highestNum < 100)
+    		return "00" + Integer.toString(highestNum);
+    	else if(highestNum >= 100 && highestNum < 1000)
+    		return "0" + Integer.toString(highestNum);
+    	else if(highestNum >= 1000 && highestNum < 10000)
+    		return Integer.toString(highestNum);
+    	else
+    		return "NNA";
+/*    	
     	String oncNum = null;
     	//Verify region number is valid. If it's not return an error
     	RegionDB regionDB = null;
@@ -1160,6 +1182,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
     	}	
     	
     	return oncNum;
+*/    	
     }
     
     /***
@@ -1304,6 +1327,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
     }
     
     
+    
+    
     /******************************************************************************************************
      * This method generates a family reference number prior to import of external data. Each family
      * has one reference number, which remains constant from year to year
@@ -1311,27 +1336,49 @@ public class ServerFamilyDB extends ServerSeasonalDB
     String generateReferenceNumber()
     {
     	//increment the last reference number used and format it to a five digit string
-    	//that starts with the letter 'C'
+    	//that starts with the letter 'A'
     	highestRefNum++;
     	
     	if(highestRefNum < 10)
-    		return "C0000" + Integer.toString(highestRefNum);
+    		return "A0000" + Integer.toString(highestRefNum);
     	else if(highestRefNum >= 10 && highestRefNum < 100)
-    		return "C000" + Integer.toString(highestRefNum);
+    		return "A000" + Integer.toString(highestRefNum);
     	else if(highestRefNum >= 100 && highestRefNum < 1000)
-    		return "C00" + Integer.toString(highestRefNum);
+    		return "A00" + Integer.toString(highestRefNum);
     	else if(highestRefNum >= 1000 && highestRefNum < 10000)
-    		return "C0" + Integer.toString(highestRefNum);
+    		return "A0" + Integer.toString(highestRefNum);
     	else
-    		return "C" + Integer.toString(highestRefNum);
+    		return "A" + Integer.toString(highestRefNum);
     }
     
     void decrementReferenceNumber() { highestRefNum--; }
+    
+    /*******
+     * This method looks at the specified year in the data base and determines the highest A4O
+     * number used to date. A4O numbers are strings with the format cccc, where c's are 
+     * character digits 0-9.
+     ******************/
+    int initializeHighestA4ONumber(FamilyDBYear dbYear)
+    {
+    	int highestA4ONum = 0;
+    	List<ONCFamily> yearListOfFamilies = dbYear.getList();
+    	for(ONCFamily f: yearListOfFamilies)
+    	{
+    		if(isNumeric(f.getONCNum()))
+    		{
+    			int number = Integer.parseInt(f.getONCNum());
+    			if(number > highestA4ONum)
+    				highestA4ONum = number;
+    		}
+    	}
+    	
+    	return highestA4ONum;
+    }
 
     /*******
-     * This method looks at every year in the data base and determines the highest ONC family
-     * reference number used to date. ONC reference numbers start with the letter 'C'
-     * and have the format Cxxxxx, where x's are digits 0-9.
+     * This method looks at every year in the data base and determines the highest A4O family
+     * reference number used to date. A4O reference numbers start with the letter 'A'
+     * and have the format Axxxxx, where x's are digits 0-9.
      ******************/
     int initializeHighestReferenceNumber()
     {
@@ -1341,7 +1388,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
     		List<ONCFamily> yearListOfFamilies = dbYear.getList();
     		for(ONCFamily f: yearListOfFamilies)
     		{
-    			if(f.getReferenceNum().startsWith("C"))
+    			if(f.getReferenceNum().startsWith("A"))
     			{
     				int refNum = Integer.parseInt(f.getReferenceNum().substring(1));
     				if(refNum > highestRefNum)
@@ -1380,35 +1427,6 @@ public class ServerFamilyDB extends ServerSeasonalDB
     	void add(ONCFamily addedFamily) { fList.add(addedFamily); }
     }
     
-    int getDelAttemptedCounts(int year, String drvNum)
-    {
-    	//get family data base for the year
-    			ServerFamilyHistoryDB deliveryDB = null;
-    			try {
-    				deliveryDB = ServerFamilyHistoryDB.getInstance();
-    			} catch (FileNotFoundException e1) {
-    				// TODO Auto-generated catch block
-    				e1.printStackTrace();
-    			} catch (IOException e1) {
-    				// TODO Auto-generated catch block
-    				e1.printStackTrace();
-    			}
-    			
-    	int delCount = 0;
-    	for(ONCFamily f:familyDB.get(year-BASE_YEAR).getList())
-    	{
-    		if(f.getDeliveryID() > -1 && f.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) >= 0)
-    		{
-    			//get delivery for family
-    			ONCFamilyHistory del = deliveryDB.getHistory(year, f.getDeliveryID());
-    			if(del != null && del.getdDelBy().equals(drvNum))
-    				delCount++;
-    		}
-    	}
-    	
-    	return delCount;
-    }
-  
     void convertFamilyDBForStatusChanges(int year)
     {
     	String[] header, nextLine;

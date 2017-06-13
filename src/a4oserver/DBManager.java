@@ -186,7 +186,7 @@ public class DBManager
 			//need to create the directory that the files will be written to
 			
 			//create the directory in the file structure for the new database, it shouldn't exist
-			String directoryPath = String.format("%s/%dDB", System.getProperty("user.dir"), newYear);
+			String directoryPath = String.format("%s/A4O/%dDB", System.getProperty("user.dir"), newYear);
 			
 			if(new File(directoryPath).mkdir())
 			{
