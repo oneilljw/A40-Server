@@ -9,7 +9,7 @@ import java.util.List;
 import actforothers.ONCChild;
 import actforothers.ONCChildWish;
 import actforothers.ONCWebChild;
-import actforothers.ONCPartner;
+import actforothers.A4OPartner;
 import actforothers.WebChildWish;
 import actforothers.WishStatus;
 
@@ -134,7 +134,7 @@ public class ServerChildDB extends ServerSeasonalDB
 						}
 						else
 						{
-							ONCPartner org = serverPartnerDB.getPartner(year,cw.getChildWishAssigneeID());
+							A4OPartner org = serverPartnerDB.getPartner(year,cw.getChildWishAssigneeID());
 							partner = org.getName();
 						}
 						

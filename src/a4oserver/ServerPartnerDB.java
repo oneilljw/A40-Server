@@ -8,7 +8,7 @@ import java.util.List;
 
 import actforothers.Address;
 import actforothers.ONCChildWish;
-import actforothers.ONCPartner;
+import actforothers.A4OPartner;
 import actforothers.WishStatus;
 
 import com.google.gson.Gson;
@@ -62,7 +62,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	String getPartners(int year)
 	{
 		Gson gson = new Gson();
-		Type listOfPartners = new TypeToken<ArrayList<ONCPartner>>(){}.getType();
+		Type listOfPartners = new TypeToken<ArrayList<A4OPartner>>(){}.getType();
 		
 		String response = gson.toJson(partnerDB.get(year - BASE_YEAR).getList(), listOfPartners);
 		return response;	
@@ -73,7 +73,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		int id = Integer.parseInt(zID);
 		int index = 0;
 		
-		List<ONCPartner> orgAL = partnerDB.get(year-BASE_YEAR).getList();
+		List<A4OPartner> orgAL = partnerDB.get(year-BASE_YEAR).getList();
 		
 		while(index < orgAL.size() && orgAL.get(index).getID() != id)
 			index++;
@@ -81,7 +81,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		if(index < orgAL.size())
 		{
 			Gson gson = new Gson();
-			String partnerjson = gson.toJson(orgAL.get(index), ONCPartner.class);
+			String partnerjson = gson.toJson(orgAL.get(index), A4OPartner.class);
 			
 			return "PARTNER" + partnerjson;
 		}
@@ -89,9 +89,9 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			return "PARTNER_NOT_FOUND";
 	}
 	
-	ONCPartner getPartner(int year, int partID)
+	A4OPartner getPartner(int year, int partID)
 	{
-		List<ONCPartner> oAL = partnerDB.get(year - BASE_YEAR).getList();
+		List<A4OPartner> oAL = partnerDB.get(year - BASE_YEAR).getList();
 		
 		int index = 0;
 		while(index < oAL.size() && oAL.get(index).getID() != partID)
@@ -109,11 +109,11 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	{
 		//Create a organization object for the updated partner
 		Gson gson = new Gson();
-		ONCPartner reqOrg = gson.fromJson(json, ONCPartner.class);
+		A4OPartner reqOrg = gson.fromJson(json, A4OPartner.class);
 		
 		//Find the position for the current family being replaced
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
-		List<ONCPartner> oAL = partnerDBYear.getList();
+		List<A4OPartner> oAL = partnerDBYear.getList();
 		int index = 0;
 		while(index < oAL.size() && oAL.get(index).getID() != reqOrg.getID())
 			index++;
@@ -128,7 +128,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		}
 		else
 		{
-			ONCPartner currOrg = oAL.get(index);
+			A4OPartner currOrg = oAL.get(index);
 			//check if partner address has changed and a region update check is required
 			if(currOrg.getStreetnum() != reqOrg.getStreetnum() ||
 				!currOrg.getStreetname().equals(reqOrg.getStreetname()) ||
@@ -140,11 +140,11 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			}
 			oAL.set(index, reqOrg);
 			partnerDBYear.setChanged(true);
-			return "UPDATED_PARTNER" + gson.toJson(reqOrg, ONCPartner.class);
+			return "UPDATED_PARTNER" + gson.toJson(reqOrg, A4OPartner.class);
 		}
 	}
 	
-	int updateRegion(ONCPartner updatedOrg)
+	int updateRegion(A4OPartner updatedOrg)
 	{
 		int reg = 0; //initialize return value to no region found
 		
@@ -176,7 +176,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	{
 		//Create a organization object for the updated partner
 		Gson gson = new Gson();
-		ONCPartner addedPartner = gson.fromJson(json, ONCPartner.class);
+		A4OPartner addedPartner = gson.fromJson(json, A4OPartner.class);
 	
 		//set the new ID for the catalog wish
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
@@ -206,18 +206,18 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		partnerDBYear.add(addedPartner);
 		partnerDBYear.setChanged(true);
 		
-		return "ADDED_PARTNER" + gson.toJson(addedPartner, ONCPartner.class);
+		return "ADDED_PARTNER" + gson.toJson(addedPartner, A4OPartner.class);
 	}
 	
 	String delete(int year, String json)
 	{
 		//Create a organization object for the updated partner
 		Gson gson = new Gson();
-		ONCPartner reqDelPartner = gson.fromJson(json, ONCPartner.class);
+		A4OPartner reqDelPartner = gson.fromJson(json, A4OPartner.class);
 	
 		//find the partner in the db
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
-		List<ONCPartner> oAL = partnerDBYear.getList();
+		List<A4OPartner> oAL = partnerDBYear.getList();
 		int index = 0;
 		while(index < oAL.size() && oAL.get(index).getID() != reqDelPartner.getID())
 			index++;
@@ -241,7 +241,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		//Find the the current partner &  decrement gift count if found
 		if(oldPartnerID > 0)
 		{
-			ONCPartner oldPartner = getPartner(year, oldPartnerID);
+			A4OPartner oldPartner = getPartner(year, oldPartnerID);
 			if(oldPartner != null)
 			{
 				oldPartner.decrementOrnAssigned();
@@ -252,7 +252,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		if(newPartnerID > 0)
 		{
 			//Find the the current partner &  increment gift count if found
-			ONCPartner newPartner = getPartner(year, newPartnerID);
+			A4OPartner newPartner = getPartner(year, newPartnerID);
 			if(newPartner != null)
 			{
 				newPartner.incrementOrnAssigned();
@@ -264,7 +264,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	void incrementGiftActionCount(int year, ONCChildWish addedWish)
 	{	
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
-		List<ONCPartner> partnerList = partnerDBYear.getList();
+		List<A4OPartner> partnerList = partnerDBYear.getList();
 		
 		//Find the the current partner being decremented
 		int index = 0;
@@ -304,7 +304,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	void decrementGiftsAssignedCount(int year, int partnerID)
 	{
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
-		List<ONCPartner> oAL = partnerDBYear.getList();
+		List<A4OPartner> oAL = partnerDBYear.getList();
 		int index=0;
 		while(index < oAL.size() && oAL.get(index).getID() != partnerID)
 			index ++;
@@ -321,7 +321,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	void addObject(int year, String[] nextLine)
 	{
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
-		partnerDBYear.add(new ONCPartner(nextLine));
+		partnerDBYear.add(new A4OPartner(nextLine));
 	}
 
 	@Override
@@ -333,16 +333,16 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		//Mark the newly created WishCatlogDBYear for saving during the next save event
 				
 		//get a reference to the prior years wish catalog
-		List<ONCPartner> lyPartnerList = partnerDB.get(partnerDB.size()-1).getList();
+		List<A4OPartner> lyPartnerList = partnerDB.get(partnerDB.size()-1).getList();
 				
 		//create the new PartnerDBYear
 		PartnerDBYear partnerDBYear = new PartnerDBYear(newYear);
 		partnerDB.add(partnerDBYear);
 				
 		//add last years partners to the new season partner list
-		for(ONCPartner lyPartner : lyPartnerList)
+		for(A4OPartner lyPartner : lyPartnerList)
 		{
-			ONCPartner newPartner = new ONCPartner(lyPartner);	//makes a copy of last year
+			A4OPartner newPartner = new A4OPartner(lyPartner);	//makes a copy of last year
 			
 			newPartner.setStatus(0);	//reset status to NO_ACTION_YET
 			
@@ -396,13 +396,13 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		//contains an assigned ID, a deliveredID, and a receivedID indicating which partner was responsible
 		//for fulfilling the wish and who ONC actually received the fulfilled wish (gift) from
 		List<PriorYearPartnerPerformance> pyPartnerPerformanceList = serverChildWishDB.getPriorYearPartnerPerformanceList(year+1);
-		List<ONCPartner> pyPerfPartnerList = new ArrayList<ONCPartner>();
+		List<A4OPartner> pyPerfPartnerList = new ArrayList<A4OPartner>();
 		
 		//populate the current partner list
-		for(ONCPartner p: partnerDB.get(year - BASE_YEAR).getList())
+		for(A4OPartner p: partnerDB.get(year - BASE_YEAR).getList())
 		{
 			//make a copy of the partner and set their assigned, delivered and received counts to zero
-			ONCPartner pyPerfPartner = new ONCPartner(p);
+			A4OPartner pyPerfPartner = new A4OPartner(p);
 			pyPerfPartner.setNumberOfOrnamentsAssigned(0);
 			pyPerfPartner.setNumberOfOrnamentsDelivered(0);
 			pyPerfPartner.setNumberOfOrnamentsReceivedBeforeDeadline(0);
@@ -415,14 +415,14 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			//find the partner the wish was assigned to and increment their prior year assigned count
 			if(pyPerf.getPYPartnerWishAssigneeID() > -1)
 			{
-				ONCPartner wishAssigneePartner = (ONCPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishAssigneeID());
+				A4OPartner wishAssigneePartner = (A4OPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishAssigneeID());
 				if(wishAssigneePartner != null)
 					wishAssigneePartner.incrementOrnAssigned();
 			}
 			//find the partner the wish was delivered to and increment their prior year assigned count
 			if(pyPerf.getPYPartnerWishDeliveredID() > -1)
 			{
-				ONCPartner wishDeliveredPartner = (ONCPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishDeliveredID());
+				A4OPartner wishDeliveredPartner = (A4OPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishDeliveredID());
 				if(wishDeliveredPartner != null)
 					wishDeliveredPartner.incrementOrnDelivered();
 			}
@@ -430,14 +430,14 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			//find the partner the wish was received from before deadline and increment their prior year received count
 			if(pyPerf.getPYPartnerWishReceivedBeforeDeadlineID() > -1)
 			{
-				ONCPartner wishReceivedBeforePartner = (ONCPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishReceivedBeforeDeadlineID());;
+				A4OPartner wishReceivedBeforePartner = (A4OPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishReceivedBeforeDeadlineID());;
 				if(wishReceivedBeforePartner != null)
 					wishReceivedBeforePartner.incrementOrnReceived(true);	
 			}
 			//find the partner the wish was received from after deadline and increment their prior year received count
 			if(pyPerf.getPYPartnerWishReceivedAfterDeadlineID() > -1)
 			{
-				ONCPartner wishReceivedAfterPartner = (ONCPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishReceivedAfterDeadlineID());;
+				A4OPartner wishReceivedAfterPartner = (A4OPartner) find(pyPerfPartnerList, pyPerf.getPYPartnerWishReceivedAfterDeadlineID());;
 				if(wishReceivedAfterPartner != null)
 					wishReceivedAfterPartner.incrementOrnReceived(false);	
 			}
@@ -452,7 +452,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 //					confPart.getNumberOfOrnamentsReceivedAfterDeadline()));	
 	}
 	
-	void savePYPartnerPerformace(List<ONCPartner> pyPerformancePartnerList)
+	void savePYPartnerPerformace(List<A4OPartner> pyPerformancePartnerList)
 	{
 		String[] header = {"Part ID", "Status", "Type", "Gift Collection","Name", "Orn Delivered",
 				"Street #", "Street", "Unit", "City", "Zip", "Region", "Phone",
@@ -470,18 +470,18 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	
 	private class PartnerDBYear extends ServerDBYear
 	{
-		private List<ONCPartner> pList;
+		private List<A4OPartner> pList;
 	    	
 	    PartnerDBYear(int year)
 	    {
 	    	super();
-	    	pList = new ArrayList<ONCPartner>();
+	    	pList = new ArrayList<A4OPartner>();
 	    }
 	    	
 	    	//getters
-	    	List<ONCPartner> getList() { return pList; }
+	    	List<A4OPartner> getList() { return pList; }
 	    	
-	    	void add(ONCPartner addedOrg) { pList.add(addedOrg); }
+	    	void add(A4OPartner addedOrg) { pList.add(addedOrg); }
 	}
 
 	@Override
