@@ -138,7 +138,7 @@ public class ServerChildWishDB extends ServerSeasonalDB
 		cwDBYear.setChanged(true);
 		
 		//Update the child object with new wish
-		childDB.updateChildsWishID(year, addedWish);
+//		childDB.updateChildsWishID(year, addedWish);
 		
 		//process new wish to see if other data bases require update. They do if the wish
 		//status has caused a family status change or if a partner assignment has changed
@@ -161,7 +161,7 @@ public class ServerChildWishDB extends ServerSeasonalDB
 			e.printStackTrace();
 		}
 	
-		serverFamilyDB.checkFamilyGiftStatusAndGiftCardOnlyOnWishAdded(year, addedWish.getChildID());
+//		serverFamilyDB.checkFamilyGiftStatusAndGiftCardOnlyOnWishAdded(year, addedWish.getChildID());
 		
 		//test to see if assignee are changing, if the old wish exists	
 		if(oldWish != null && oldWish.getChildWishAssigneeID() != addedWish.getChildWishAssigneeID())

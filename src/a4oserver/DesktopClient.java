@@ -253,12 +253,6 @@ public class DesktopClient extends Thread
                 	String response = childDB.getChildren(year);
                 	output.println(response);
                 }
-                else if(command.startsWith("GET<childwishes>"))
-                {
-                	clientMgr.addLogMessage(command);
-                	String response = getChildWishes(year);
-                	output.println(response);
-                }
                 else if(command.startsWith("GET<partners>"))
                 {
                 	clientMgr.addLogMessage(command);
@@ -964,31 +958,6 @@ public class DesktopClient extends Thread
     	
     	return "YEAR" + Integer.toString(year);
 
-    }
-    
-    /******************
-     * This method creates a json containing an array list of ONCChildWish's. The list 
-     * contains the current wishes for each child in the child data base. The method is
-     * in this class since access to both the child database and the child wish database
-     * is necessary to build the array list. 
-     * @param year
-     * @return
-     */
-    String getChildWishes(int year)
-    {
-    	//Build the array list of current ONCChildWish's for each child
-    	ArrayList<ONCChildWish> childwishAL = new ArrayList<ONCChildWish>();
-  
-    	for(ONCChild c:childDB.getList(year))  
-    		for(int wn=0; wn < NUMBER_OF_WISHES_PER_CHILD; wn++)		
-    			if(c.getChildWishID(wn) > -1) //Wish must have a valid ID
-    				childwishAL.add(ServerChildWishDB.getWish(year, c.getChildWishID(wn)));
-    	
-    	//Convert the array list to a json and return it
-    	Gson gson = new Gson();
-    	Type listtype = new TypeToken<ArrayList<ONCChildWish>>(){}.getType();
-   
-    	return gson.toJson(childwishAL, listtype);
     }
     
     int getYear() { return year; }

@@ -118,31 +118,31 @@ public class ServerChildDB extends ServerSeasonalDB
 				for(int wn=0; wn < 3; wn++)
 				{
 					//has the wish been created?
-					if(c.getChildWishID(wn) == -1)
-					{
+//					if(c.getChildWishID(wn) == -1)
+//					{
 						responseList.add(new WebChildWish());	//not created
-					}
-					else		
-					{
-						ONCChildWish cw = ServerChildWishDB.getWish(year, c.getChildWishID(wn));
-						int wishRestriction = cw.getChildWishIndicator();
-						String[] restrictions = {" ", "*", "#"};
-						String partner;
-						if(cw.getChildWishAssigneeID() < 1)
-						{
-							partner = "";		
-						}
-						else
-						{
-							A4OPartner org = serverPartnerDB.getPartner(year,cw.getChildWishAssigneeID());
-							partner = org.getName();
-						}
-						
-						responseList.add(new WebChildWish(wishCatalog.findWishNameByID(year, cw.getWishID()),
-															cw.getChildWishDetail(), 
-															restrictions[wishRestriction], 
-															partner, cw.getChildWishStatus()));
-					}
+//					}
+//					else		
+//					{
+//						ONCChildWish cw = ServerChildWishDB.getWish(year, c.getChildWishID(wn));
+//						int wishRestriction = cw.getChildWishIndicator();
+//						String[] restrictions = {" ", "*", "#"};
+//						String partner;
+//						if(cw.getChildWishAssigneeID() < 1)
+//						{
+//							partner = "";		
+//						}
+//						else
+//						{
+//							A4OPartner org = serverPartnerDB.getPartner(year,cw.getChildWishAssigneeID());
+//							partner = org.getName();
+//						}
+//						
+//						responseList.add(new WebChildWish(wishCatalog.findWishNameByID(year, cw.getWishID()),
+//															cw.getChildWishDetail(), 
+//															restrictions[wishRestriction], 
+//															partner, cw.getChildWishStatus()));
+//					}
 				}
 			}
 		
@@ -249,47 +249,6 @@ public class ServerChildDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		ONCChild deletedChild = gson.fromJson(childjson, ONCChild.class);
 		
-		
-		//check for and decrement partner wish assignment counts
-		//and remove wishes for the deleted child
-		ServerChildWishDB cwDB = null;
-		ServerPartnerDB serverPartnerDB = null;
-		try {
-			cwDB = ServerChildWishDB.getInstance();
-			serverPartnerDB = ServerPartnerDB.getInstance();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		if(cwDB != null)
-		{
-			//decrement partner wish assignment counts
-			for(int wn= 0; wn < NUMBER_WISHES_PER_CHILD; wn++)
-			{
-				int childWishID = deletedChild.getChildWishID(wn);
-				
-				if(childWishID != -1)	//does the wish exist?
-				{
-					ONCChildWish cw = ServerChildWishDB.getWish(year, childWishID);
-
-					//if wish has been assigned, then we have to decrement the partner assignee count
-					if(serverPartnerDB != null && cw != null && 
-							cw.getChildWishStatus().compareTo(WishStatus.Assigned) >= 0)
-					{
-						int wishPartnerID = cw.getChildWishAssigneeID();
-						serverPartnerDB.decrementGiftsAssignedCount(year, wishPartnerID);
-					}
-				}
-			}
-			
-			//remove the child's wishes from the child wish data base
-			cwDB.deleteChildWishes(year, deletedChild.getID());
-		}
-		
 		//find and remove the deleted child from the data base
 		ChildDBYear childDBYear = childDB.get(year-BASE_YEAR);
 		List<ONCChild> cAL = childDBYear.getList();
@@ -357,23 +316,23 @@ public class ServerChildDB extends ServerSeasonalDB
 	 * @param year - which year's data base is being changed
 	 * @param addedWish - the child wish object that was changed
 	 ************************************************************************************/
-	void updateChildsWishID(int year, ONCChildWish addedWish)
-	{
-		//Find the child using the added wish child ID
-		ChildDBYear childDBYear = childDB.get(year-BASE_YEAR);
-		List<ONCChild> cAL = childDBYear.getList();
-		int index = 0;
-		while(index < cAL.size() && cAL.get(index).getID() != addedWish.getChildID())
-			index++;
-		
-		//Replace the current childwishID with the newly added wish ID
-		if(index < cAL.size())
-		{
-			ONCChild c = cAL.get(index);
-			c.setChildWishID(addedWish.getID(), addedWish.getWishNumber());
-			childDBYear.setChanged(true);
-		}
-	}
+//	void updateChildsWishID(int year, ONCChildWish addedWish)
+//	{
+//		//Find the child using the added wish child ID
+//		ChildDBYear childDBYear = childDB.get(year-BASE_YEAR);
+//		List<ONCChild> cAL = childDBYear.getList();
+//		int index = 0;
+//		while(index < cAL.size() && cAL.get(index).getID() != addedWish.getChildID())
+//			index++;
+//		
+//		//Replace the current childwishID with the newly added wish ID
+//		if(index < cAL.size())
+//		{
+//			ONCChild c = cAL.get(index);
+//			c.setChildWishID(addedWish.getID(), addedWish.getWishNumber());
+//			childDBYear.setChanged(true);
+//		}
+//	}
 	
 	static List<ONCChild> getChildList(int year, int famid)
 	{

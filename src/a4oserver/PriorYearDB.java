@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import actforothers.ONCChild;
-import actforothers.ONCChildWish;
-import actforothers.ONCFamily;
 import actforothers.ONCPriorYearChild;
 
 import com.google.gson.Gson;
@@ -180,6 +178,7 @@ public class PriorYearDB extends ServerSeasonalDB
 	@Override
 	void createNewYear(int newYear) 
 	{
+/*		
 		//before creating and adding a new PriorYearChildDBYear to the data base, get last years
 		//prior year child data base list. It will be the last in the list. It is used later in
 		//the method to begin to populate the new prior year children list for the new year
@@ -281,7 +280,7 @@ public class PriorYearDB extends ServerSeasonalDB
 //		System.out.println(String.format("Number of %d children new to prior year: %d", 2014, nNew));
 		
 		newPYCDBYear.setChanged(true);	//mark this db for persistent saving on the next save event
-			
+*/			
 	}
 		
 	 /******************************************************************************************
