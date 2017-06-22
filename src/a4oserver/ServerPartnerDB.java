@@ -16,7 +16,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class ServerPartnerDB extends ServerSeasonalDB
 {
-	private static final int ORGANIZATION_DB_HEADER_LENGTH = 36;
+	private static final int ORGANIZATION_DB_HEADER_LENGTH = 34;
 	private static final int STATUS_CONFIRMED = 5;
 	
 	private static List<PartnerDBYear> partnerDB;
@@ -121,7 +121,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		//If partner is located, replace the current partner with the update. Check to 
 		//ensure the partner status isn't confirmed with gifts assigned. If so, deny the change. 
 		if(index == oAL.size() || (reqOrg.getStatus() != STATUS_CONFIRMED && 
-									oAL.get(index).getNumberOfOrnamentsAssigned() > 0)) 
+									oAL.get(index).getNumberOfGiftFamsAssigned() > 0)) 
 		{
 			
 			return "UPDATE_FAILED";
@@ -224,7 +224,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		
 		//partner must be present and have no ornaments assigned to be deleted
 		if(index < oAL.size() && oAL.get(index).getStatus() != STATUS_CONFIRMED &&
-				oAL.get(index).getNumberOfOrnamentsAssigned() == 0)
+				oAL.get(index).getNumberOfGiftFamsAssigned() == 0)
 		{
 			oAL.remove(index);
 			partnerDBYear.setChanged(true);
@@ -282,7 +282,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 				{
 					gvDB = ServerGlobalVariableDB.getInstance();
 					boolean bReceviedBeforeDeadline = addedWish.getChildWishDateChanged().before(gvDB.getDateGiftsRecivedDealdine(year));
-					partnerList.get(index).incrementOrnReceived(bReceviedBeforeDeadline);
+//					partnerList.get(index).incrementOrnReceived(bReceviedBeforeDeadline);
 				} 
 				catch (FileNotFoundException e) 
 				{
@@ -347,19 +347,17 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			newPartner.setStatus(0);	//reset status to NO_ACTION_YET
 			
 			//set prior year performance statistics
-			newPartner.setPriorYearRequested(lyPartner.getNumberOfOrnamentsRequested());
-			newPartner.setPriorYearAssigned(lyPartner.getNumberOfOrnamentsAssigned());
-			newPartner.setPriorYearDelivered(lyPartner.getNumberOfOrnamentsDelivered());
-			newPartner.setPriorYearReceivedBeforeDeadline(lyPartner.getNumberOfOrnamentsReceivedBeforeDeadline());
-			newPartner.setPriorYearReceivedAfterDeadline(lyPartner.getNumberOfOrnamentsReceivedAfterDeadline());
+			newPartner.setPriorYearGiftFamsRequested(lyPartner.getNumberOfGiftFamsRequested());
+			newPartner.setPriorYearGiftFamsAssigned(lyPartner.getNumberOfGiftFamsAssigned());
+			newPartner.setPriorYearMealFamsRequested(lyPartner.getNumberOfMealFamsRequested());
+			newPartner.setPriorYearMealFamsAssigned(lyPartner.getNumberOfMealFamsAssigned());
 			
 			//reset the new season performance statistics
-			newPartner.setNumberOfOrnamentsRequested(0);	//reset requested to 0
-			newPartner.setNumberOfOrnamentsAssigned(0);	//reset assigned to 0
-			newPartner.setNumberOfOrnamentsDelivered(0);	//reset delivered to 0
-			newPartner.setNumberOfOrnamentsReceivedBeforeDeadline(0);	//reset received before to 0
-			newPartner.setNumberOfOrnamentsReceivedAfterDeadline(0);	//reset received after to 0
-			newPartner.setPriorYearRequested(lyPartner.getNumberOfOrnamentsRequested());
+			newPartner.setNumberOfGiftFamsRequested(0);	//reset requested to 0
+			newPartner.setNumberOfGiftFamsAssigned(0);	//reset assigned to 0
+			newPartner.setNumberOfMealFamsRequested(0);	//reset delivered to 0
+			newPartner.setNumberOfMealFamsAssigned(0);	//reset received before to 0
+			newPartner.setPriorYearGiftFamsRequested(lyPartner.getNumberOfGiftFamsRequested());
 			
 			partnerDBYear.add(newPartner);
 		}
@@ -377,6 +375,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	 * @param newYear
 	 * @param partnerDBYear
 	 ******************************************************************************************/
+/*	
 	void determinePriorYearPerformance(int year)
 	{
 		//get the child wish data base reference
@@ -451,18 +450,18 @@ public class ServerPartnerDB extends ServerSeasonalDB
 //					confPart.getNumberOfOrnamentsDelivered(), confPart.getNumberOfOrnamentsReceivedBeforeDeadline(),
 //					confPart.getNumberOfOrnamentsReceivedAfterDeadline()));	
 	}
-	
+*/	
 	void savePYPartnerPerformace(List<A4OPartner> pyPerformancePartnerList)
 	{
 		String[] header = {"Part ID", "Status", "Type", "Gift Collection","Name", "Orn Delivered",
 				"Street #", "Street", "Unit", "City", "Zip", "Region", "Phone",
-	 			"Orn Requested", "Orn Assigned", "Orn Delivered", "Gifts Received Before",
+	 			"Gifts Requested", "Gifts Assigned", "Meals Requested", "Meals Assigned",
 	 			"Gifts Received After", "Other", "Deliver To", "Special Notes",
 	 			"Contact", "Contact Email", "Contact Phone",
 	 			"Contact2", "Contact2 Email", "Contact2 Phone",
 	 			"Time Stamp", "Changed By", "Stoplight Pos", "Stoplight Mssg", "Stoplight C/B",
-	 			"Prior Year Requested",	"Prior Year Assigned", "Prior Year Delivered",
-	 			"Prior Year Received Before, Prior Year Received After"};
+	 			"PY Gifts Requested",	"PY Gifts Assigned", "PY Meals Requested",
+	 			"PY Meals Assigned"};
 		
 		String path = String.format("A4O/%s/PartnerPerformance.csv", System.getProperty("user.dir"));
 		exportDBToCSV(pyPerformancePartnerList, header, path);
@@ -489,13 +488,13 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	{
 		String[] header = {"Org ID", "Status", "Type", "Gift Collection", "Name",
 				"Street #", "Street", "Unit", "City", "Zip", "Region", "Phone",
-	 			"Orn Requested", "Orn Assigned", "Orn Delivered", "Gifts Received Before",
-	 			"Gifts Received After", "Other", "Deliver To", "Special Notes",
+	 			"Gifts Requested", "Gifts Assigned", "Meals Requested", "Meals Assigned",
+	 			"Other", "Deliver To", "Special Notes",
 	 			"Contact", "Contact Email", "Contact Phone",
 	 			"Contact2", "Contact2 Email", "Contact2 Phone",
 	 			"Time Stamp", "Changed By", "Stoplight Pos", "Stoplight Mssg", "Stoplight C/B",
-	 			"PY Requested",	"PY Assigned", "PY Delivered",
-	 			"PY Received Before", "PY Received After"};
+	 			"PY Gifts Requested",	"PY Gifts Assigned", "PY Meals Reqeusted",
+	 			"PY Meals Assigned"};
 		
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
 		if(partnerDBYear.isUnsaved())

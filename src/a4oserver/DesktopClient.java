@@ -100,7 +100,7 @@ public class DesktopClient extends Thread
 	        serverFamilyDB = ServerFamilyDB.getInstance();
 	        serverGroupDB = ServerGroupDB.getInstance();
 	        childDB = ServerChildDB.getInstance();
-	        childwishDB = ServerChildWishDB.getInstance();
+//	        childwishDB = ServerChildWishDB.getInstance();
 	        serverPartnerDB = ServerPartnerDB.getInstance();
 	        volunteerDB = ServerVolunteerDB.getInstance();
 	        warehouseDB = ServerWarehouseDB.getInstance();
