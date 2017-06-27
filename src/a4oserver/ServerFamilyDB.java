@@ -26,7 +26,7 @@ import actforothers.ONCAdult;
 import actforothers.ONCChild;
 import actforothers.ONCChildWish;
 import actforothers.ONCFamilyHistory;
-import actforothers.ONCFamily;
+import actforothers.A4OFamily;
 import actforothers.ONCMeal;
 import actforothers.ONCUser;
 import actforothers.ONCWebsiteFamily;
@@ -120,7 +120,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	String getFamilies(int year)
 	{
 		Gson gson = new Gson();
-		Type listOfFamilies = new TypeToken<ArrayList<ONCFamily>>(){}.getType();
+		Type listOfFamilies = new TypeToken<ArrayList<A4OFamily>>(){}.getType();
 		
 		String response = gson.toJson(familyDB.get(year-BASE_YEAR).getList(), listOfFamilies);
 		return response;	
@@ -131,7 +131,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		Type listOfWebsiteFamilies = new TypeToken<ArrayList<ONCWebsiteFamily>>(){}.getType();
 		
-		List<ONCFamily> searchList = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> searchList = familyDB.get(year-BASE_YEAR).getList();
 		ArrayList<ONCWebsiteFamily> responseList = new ArrayList<ONCWebsiteFamily>();
 		
 		for(int i=0; i<searchList.size(); i++)
@@ -154,20 +154,20 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		Type listOfWebsiteFamilies = new TypeToken<ArrayList<ONCWebsiteFamily>>(){}.getType();
 		
-		List<ONCFamily> searchList = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> searchList = familyDB.get(year-BASE_YEAR).getList();
 		ArrayList<ONCWebsiteFamily> responseList = new ArrayList<ONCWebsiteFamily>();
 		
 		if(agentID > -1)
 		{
 			//add only the families referred by that agent
-			for(ONCFamily f : searchList)
+			for(A4OFamily f : searchList)
 				if(f.getAgentID() == agentID)
 					responseList.add(new ONCWebsiteFamily(f));
 		}
 		else if(agentID == -1 && groupID == -1)
 		{
 			//add all families referred in that year
-			for(ONCFamily f : searchList)
+			for(A4OFamily f : searchList)
 				responseList.add(new ONCWebsiteFamily(f));
 		}
 		else if(groupID > -1)
@@ -175,7 +175,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			//add only the families referred by each agent in the group that referred that year
 			for(Integer userID : userDB.getUserIDsInGroup(groupID))
 				if(didAgentReferInYear(year, userID))
-					for(ONCFamily f : searchList)
+					for(A4OFamily f : searchList)
 						if(f.getAgentID() == userID)
 							responseList.add(new ONCWebsiteFamily(f));	
 		}
@@ -194,7 +194,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		Type listOfFamilyReferences = new TypeToken<ArrayList<FamilyReference>>(){}.getType();
 		
-		List<ONCFamily> searchList = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> searchList = familyDB.get(year-BASE_YEAR).getList();
 		ArrayList<FamilyReference> responseList = new ArrayList<FamilyReference>();
 		
 		//sort the search list by ONC Number
@@ -215,37 +215,37 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		Type listOfFamilyReferences = new TypeToken<ArrayList<FamilyReference>>(){}.getType();
 		
-    	List<ONCFamily> oncFamAL = familyDB.get(year-BASE_YEAR).getList();
+    	List<A4OFamily> oncFamAL = familyDB.get(year-BASE_YEAR).getList();
     	List<FamilyReference> resultList = new ArrayList<FamilyReference>();
     	
 		//Determine the type of search based on characteristics of search string
 		if(s.matches("-?\\d+(\\.\\d+)?") && s.length() < 5)
 		{
-			for(ONCFamily f: oncFamAL)
+			for(A4OFamily f: oncFamAL)
 	    		if(s.equals(f.getONCNum()))
 	    			resultList.add(new FamilyReference(f.getReferenceNum()));	
 		}
 		else if((s.matches("-?\\d+(\\.\\d+)?")) && s.length() < 7)
 		{
-			for(ONCFamily f: oncFamAL)
+			for(A4OFamily f: oncFamAL)
 	    		if(s.equals(f.getReferenceNum()))
 	    			resultList.add(new FamilyReference(f.getReferenceNum())); 
 		}
 		else if((s.startsWith("C") && s.substring(1).matches("-?\\d+(\\.\\d+)?")) && s.length() < 7)
 		{
-			for(ONCFamily f: oncFamAL)
+			for(A4OFamily f: oncFamAL)
 	    		if(s.equals(f.getReferenceNum()))
 	    			resultList.add(new FamilyReference(f.getReferenceNum())); 
 		}
 		else if((s.startsWith("W") && s.substring(1).matches("-?\\d+(\\.\\d+)?")) && s.length() < 6)
 		{
-			for(ONCFamily f: oncFamAL)
+			for(A4OFamily f: oncFamAL)
 	    		if(s.equals(f.getReferenceNum()))
 	    			resultList.add(new FamilyReference(f.getReferenceNum())); 
 		}
 		else if(s.matches("-?\\d+(\\.\\d+)?") && s.length() < 13)
 		{
-			for(ONCFamily f:oncFamAL)
+			for(A4OFamily f:oncFamAL)
 	    	{
 	    		//Ensure just 10 digits, no dashes in numbers
 	    		String hp = f.getHomePhone().replaceAll("-", "");
@@ -259,7 +259,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		else
 		{
 			//search the family db
-	    	for(ONCFamily f: oncFamAL)
+	    	for(A4OFamily f: oncFamAL)
 	    		if(f.getClientFamily().toLowerCase().contains(s.toLowerCase()))
 	    			resultList.add(new FamilyReference(f.getReferenceNum()));
 	    	
@@ -277,11 +277,11 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	{
 		//Create a family object for the updated family
 		Gson gson = new Gson();
-		ONCFamily updatedFamily = gson.fromJson(familyjson, ONCFamily.class);
+		A4OFamily updatedFamily = gson.fromJson(familyjson, A4OFamily.class);
 		
 		//Find the position for the current family being replaced
 		FamilyDBYear fDBYear = familyDB.get(year - BASE_YEAR);
-		List<ONCFamily> fAL = fDBYear.getList();
+		List<A4OFamily> fAL = fDBYear.getList();
 		int index = 0;
 		while(index < fAL.size() && fAL.get(index).getID() != updatedFamily.getID())
 			index++;
@@ -290,7 +290,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		//if address has changed, update the region. 
 		if(index < fAL.size())
 		{
-			ONCFamily currFam = fAL.get(index);
+			A4OFamily currFam = fAL.get(index);
 			
 			//check if the reference number has changed to a Cxxxxx number greater than
 			//the current highestReferenceNumber. If it is, reset highestRefNum
@@ -332,17 +332,17 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			
 			fAL.set(index, updatedFamily);
 			fDBYear.setChanged(true);
-			return "UPDATED_FAMILY" + gson.toJson(updatedFamily, ONCFamily.class);
+			return "UPDATED_FAMILY" + gson.toJson(updatedFamily, A4OFamily.class);
 		}
 		else
 			return "UPDATE_FAILED";
 	}
 	
-	ONCFamily update(int year, ONCFamily updatedFamily, boolean bAutoAssign)
+	A4OFamily update(int year, A4OFamily updatedFamily, boolean bAutoAssign)
 	{
 		//Find the position for the current family being replaced
 		FamilyDBYear fDBYear = familyDB.get(year - BASE_YEAR);
-		List<ONCFamily> fAL = fDBYear.getList();
+		List<A4OFamily> fAL = fDBYear.getList();
 		int index = 0;
 		while(index < fAL.size() && fAL.get(index).getID() != updatedFamily.getID())
 			index++;
@@ -351,7 +351,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		//if address has changed, update the region. 
 		if(index < fAL.size())
 		{
-			ONCFamily currFam = fAL.get(index);
+			A4OFamily currFam = fAL.get(index);
 			
 			//check if the address has changed and a region update check is required
 			if(!currFam.getHouseNum().equals(updatedFamily.getHouseNum()) ||
@@ -391,7 +391,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			return null;
 	}
 	
-	int updateRegion(ONCFamily updatedFamily)
+	int updateRegion(A4OFamily updatedFamily)
 	{
 		int reg = 0; //initialize return value to no region found
 		
@@ -424,7 +424,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	{
 		//Create a family object for the add family request
 		Gson gson = new Gson();
-		ONCFamily addedFam = gson.fromJson(json, ONCFamily.class);
+		A4OFamily addedFam = gson.fromJson(json, A4OFamily.class);
 		
 		if(addedFam != null)
 		{
@@ -460,7 +460,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			fDBYear.setChanged(true);
 		
 			//return the new family
-			return "ADDED_FAMILY" + gson.toJson(addedFam, ONCFamily.class);
+			return "ADDED_FAMILY" + gson.toJson(addedFam, A4OFamily.class);
 		}
 		else
 			return "ADD_FAMILY_FAILED";
@@ -487,7 +487,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				jsonResponseList.add(userResponse.getJsonResponse());
 			
 			//add the family to the Family DB
-			ONCFamily reqAddFam = new ONCFamily(bpFam.referringAgentName, bpFam.referringAgentOrg,
+			A4OFamily reqAddFam = new A4OFamily(bpFam.referringAgentName, bpFam.referringAgentOrg,
 				bpFam.referringAgentTitle, bpFam.clientFamily, bpFam.headOfHousehold,
 				bpFam.familyMembers, bpFam.referringAgentEmail, bpFam.clientFamilyEmail, 
 				bpFam.clientFamilyPhone, bpFam.referringAgentPhone, bpFam.dietartyRestrictions,
@@ -498,11 +498,11 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				bpFam.hasTransportation, bpFam.batchNum, new Date(), -1, "NNA", -1, 
 				currClient.getClientUser().getLNFI(), -1);
 			
-			ONCFamily addedFam = add(year, reqAddFam);
+			A4OFamily addedFam = add(year, reqAddFam);
 			if(addedFam != null)
 			{
 				//if the family was added successfully, add the adults and children
-				jsonResponseList.add("ADDED_FAMILY" + gson.toJson(addedFam, ONCFamily.class));
+				jsonResponseList.add("ADDED_FAMILY" + gson.toJson(addedFam, A4OFamily.class));
 		
 				String[] members = bpFam.getFamilyMembers().trim().split("\n");					
 				for(int i=0; i<members.length; i++)
@@ -549,7 +549,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		return "ADDED_BRITEPATH_FAMILIES" + gson.toJson(jsonResponseList, listOfChanges);
 	}
 	
-	ONCFamily add(int year, ONCFamily addedFam)
+	A4OFamily add(int year, A4OFamily addedFam)
 	{
 		if(addedFam != null)
 		{
@@ -614,7 +614,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				
 				//find the family
 				FamilyDBYear fDBYear = familyDB.get(year - BASE_YEAR);
-				ONCFamily updatedFam = (ONCFamily) find(fDBYear.getList(), addedFamHistObj.getFamID());
+				A4OFamily updatedFam = (A4OFamily) find(fDBYear.getList(), addedFamHistObj.getFamID());
 				
 				if(updatedFam != null)
 				{
@@ -624,7 +624,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 					
 					//if add was successful, need to q the change to all in-year clients
 					//notify in year clients of change
-					String response = "UPDATED_FAMILY" + gson.toJson(updatedFam, ONCFamily.class);
+					String response = "UPDATED_FAMILY" + gson.toJson(updatedFam, A4OFamily.class);
 					clientMgr.notifyAllInYearClients(year, response);
 				}
 			}
@@ -645,18 +645,18 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	{
 		//Create a family object for the family to check
 		Gson gson = new Gson();
-		ONCFamily reqFamToCheck = gson.fromJson(json, ONCFamily.class);
+		A4OFamily reqFamToCheck = gson.fromJson(json, A4OFamily.class);
 		
 		String result = "UNIQUE_FAMILY";
 		
 		//verify requested family to check is in database
-		ONCFamily famToCheck = getFamily(year, reqFamToCheck.getID());
+		A4OFamily famToCheck = getFamily(year, reqFamToCheck.getID());
 		if(famToCheck != null)
 		{
 			//get the children to check from the family to check
 			List<ONCChild> famChildrenToCheck = ServerChildDB.getChildList(year, famToCheck.getID());
 			
-			ONCFamily dupFamily = getDuplicateFamily(year, famToCheck, famChildrenToCheck);
+			A4OFamily dupFamily = getDuplicateFamily(year, famToCheck, famChildrenToCheck);
 			if(dupFamily != null)
 			{
 				//family to check is a duplicate, mark them as such and notify clients
@@ -669,7 +669,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				famToCheck.setReferenceNum(dupFamily.getReferenceNum());
 				
 				//notify all in year clients of change to famToCheck
-				String famToCheckJson = gson.toJson(famToCheck, ONCFamily.class);
+				String famToCheckJson = gson.toJson(famToCheck, A4OFamily.class);
 				clientMgr.notifyAllInYearClients(year, "UPDATED_FAMILY" + famToCheckJson);
 				
 				result = "DUPLICATE_FAMILY";
@@ -683,7 +683,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	String getFamily(int year, String zFamID)
 	{
 		int oncID = Integer.parseInt(zFamID);
-		List<ONCFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
 		
 		int index = 0;	
 		while(index < fAL.size() && fAL.get(index).getID() != oncID)
@@ -692,7 +692,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		if(index < fAL.size())
 		{
 			Gson gson = new Gson();
-			String familyjson = gson.toJson(fAL.get(index), ONCFamily.class);
+			String familyjson = gson.toJson(fAL.get(index), A4OFamily.class);
 			
 			return "FAMILY" + familyjson;
 		}
@@ -705,7 +705,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		String response;
 	
-		List<ONCFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
 		
 		int index=0;
 		while(index<fAL.size() && !fAL.get(index).getReferenceNum().equals(targetID))
@@ -713,7 +713,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		
 		if(index<fAL.size())
 		{
-			ONCFamily fam = fAL.get(index);
+			A4OFamily fam = fAL.get(index);
 			ONCWebsiteFamilyExtended webFam = new ONCWebsiteFamilyExtended(fam,RegionDB.getRegion(fam.getRegion()));
 			response = gson.toJson(webFam, ONCWebsiteFamilyExtended.class);
 		}
@@ -724,9 +724,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		return new HtmlResponse(callbackFunction +"(" + response +")", HTTPCode.Ok);		
 	}
 	
-	ONCFamily getFamily(int year, int id)	//id number set each year
+	A4OFamily getFamily(int year, int id)	//id number set each year
 	{
-		List<ONCFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
 		int index = 0;	
 		while(index < fAL.size() && fAL.get(index).getID() != id)
 			index++;
@@ -739,7 +739,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	
 	static String getFamilyRefNum(int year, int id)	//id number set each year
 	{
-		List<ONCFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
 		int index = 0;	
 		while(index < fAL.size() && fAL.get(index).getID() != id)
 			index++;
@@ -750,9 +750,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			return null;
 	}
 	
-	ONCFamily getFamilyByMealID(int year, int mealID)
+	A4OFamily getFamilyByMealID(int year, int mealID)
 	{
-		List<ONCFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
 		int index = 0;	
 		while(index < fAL.size() && fAL.get(index).getMealID() != mealID)
 			index++;
@@ -764,9 +764,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	}
 
 	
-	ONCFamily getFamilyByTargetID(int year, String targetID)	//Persistent odb, wfcm or onc id number string
+	A4OFamily getFamilyByTargetID(int year, String targetID)	//Persistent odb, wfcm or onc id number string
 	{
-		List<ONCFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> fAL = familyDB.get(year-BASE_YEAR).getList();
 		int index = 0;	
 		while(index < fAL.size() && !fAL.get(index).getReferenceNum().equals(targetID))
 			index++;
@@ -839,7 +839,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	 */
 	void familyMealAdded(int year, ONCMeal addedMeal)
 	{
-		ONCFamily fam = getFamily(year, addedMeal.getFamilyID());
+		A4OFamily fam = getFamily(year, addedMeal.getFamilyID());
 		if(fam != null && fam.getMealStatus() != addedMeal.getStatus())
 		{
 			fam.setMealID(addedMeal.getID());
@@ -847,7 +847,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			familyDB.get(year - BASE_YEAR).setChanged(true);
 			
 			Gson gson = new Gson();
-	    	String changeJson = "UPDATED_FAMILY" + gson.toJson(fam, ONCFamily.class);
+	    	String changeJson = "UPDATED_FAMILY" + gson.toJson(fam, A4OFamily.class);
 	    	clientMgr.notifyAllInYearClients(year, changeJson);	//null to notify all clients
 		}
 	}
@@ -943,7 +943,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	{
 		//find the family
 		FamilyDBYear famDBYear = familyDB.get(year - BASE_YEAR);
-		ONCFamily fam = getFamily(year, addedHistObj.getFamID());
+		A4OFamily fam = getFamily(year, addedHistObj.getFamID());
 		
 		//update the history ID and gift status
 		fam.setHistoryID(addedHistObj.getID());
@@ -952,7 +952,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		
 		//notify in year clients of change
 		Gson gson = new Gson();
-    	String change = "UPDATED_FAMILY" + gson.toJson(fam, ONCFamily.class);
+    	String change = "UPDATED_FAMILY" + gson.toJson(fam, A4OFamily.class);
     	clientMgr.notifyAllInYearClients(year, change);	//null to notify all clients	
 	}
 /*	
@@ -991,7 +991,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		if(!nextLine[6].isEmpty())
 			date_changed.setTimeInMillis(Long.parseLong(nextLine[6]));
 			
-		famDBYear.add(new ONCFamily(nextLine));
+		famDBYear.add(new A4OFamily(nextLine));
 	}
 	
 	void save(int year)
@@ -1016,7 +1016,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	
 	static boolean didAgentReferInYear(int year, int agentID)
 	{
-		List<ONCFamily> famList = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> famList = familyDB.get(year-BASE_YEAR).getList();
 		
 		int index = 0;
 		while(index < famList.size() && famList.get(index).getAgentID() != agentID)
@@ -1042,7 +1042,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		boolean bAddressHadUnit = false;
 		if(priorYear > BASE_YEAR)
 		{
-			List<ONCFamily> famList = familyDB.get(priorYear-BASE_YEAR).getList();
+			List<A4OFamily> famList = familyDB.get(priorYear-BASE_YEAR).getList();
 			int index = 0;
 			while(index < famList.size() &&
 				   !(famList.get(index).getHouseNum().equals(housenum) &&
@@ -1080,7 +1080,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	//convert targetID to familyID
 	static int getFamilyID(int year, String targetID)
 	{
-		List<ONCFamily> famList = familyDB.get(year-BASE_YEAR).getList();
+		List<A4OFamily> famList = familyDB.get(year-BASE_YEAR).getList();
 		
 		int index = 0;
 		while(index < famList.size() && !famList.get(index).getReferenceNum().equals(targetID))
@@ -1092,7 +1092,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			return -1;
 	}
 	
-	List<ONCFamily> getList(int year)
+	List<A4OFamily> getList(int year)
 	{
 		return familyDB.get(year-BASE_YEAR).getList();
 	}
@@ -1188,16 +1188,16 @@ public class ServerFamilyDB extends ServerSeasonalDB
     /***
      * Check to see if family is already in a family data base. 
      */
-    ONCFamily getDuplicateFamily(int year, ONCFamily addedFamily, List<ONCChild> addedChildList)
+    A4OFamily getDuplicateFamily(int year, A4OFamily addedFamily, List<ONCChild> addedChildList)
     {
 //    	System.out.println(String.format("FamilyDB.getDuplicateFamily: "
 //				+ "year= %d, addedFamily HOHLastName = %s, addedFamily Ref#= %s", 
 //				year, addedFamily.getHOHLastName(), addedFamily.getODBFamilyNum()));
     	
-    	ONCFamily dupFamily = null;
+    	A4OFamily dupFamily = null;
     	boolean bFamilyDuplicate = false;
     	//check to see if family exists in year. 
-    	List<ONCFamily> famList = familyDB.get(year-BASE_YEAR).getList();
+    	List<A4OFamily> famList = familyDB.get(year-BASE_YEAR).getList();
     	
 //    	System.out.println("getDuplicateFamiiy: got famList, size= " + famList.size());
     	
@@ -1246,16 +1246,16 @@ public class ServerFamilyDB extends ServerSeasonalDB
      * @param addedChildList
      * @return
      */
-    ONCFamily isPriorYearFamily(int year, ONCFamily addedFamily, List<ONCChild> addedChildList)
+    A4OFamily isPriorYearFamily(int year, A4OFamily addedFamily, List<ONCChild> addedChildList)
     {
     	boolean bFamilyIsInPriorYear = false;
-    	ONCFamily pyFamily = null;
+    	A4OFamily pyFamily = null;
     	int yearIndex = year-1;
     	
     	//check each prior year for a match
     	while(yearIndex >= BASE_YEAR && !bFamilyIsInPriorYear)
     	{
-    		List<ONCFamily> pyFamilyList = familyDB.get(yearIndex-BASE_YEAR).getList();
+    		List<A4OFamily> pyFamilyList = familyDB.get(yearIndex-BASE_YEAR).getList();
     		
     		//check each family in year for a match
     		int pyFamilyIndex = 0;
@@ -1274,8 +1274,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
     	
     }
     
-    boolean areFamiliesTheSame(ONCFamily checkFamily, List<ONCChild> checkChildList, 
-    							ONCFamily addedFamily, List<ONCChild> addedChildList)
+    boolean areFamiliesTheSame(A4OFamily checkFamily, List<ONCChild> checkChildList, 
+    							A4OFamily addedFamily, List<ONCChild> addedChildList)
     {
     	
 //    	System.out.println(String.format("FamiyDB.areFamiliesThe Same: Checking family "
@@ -1361,8 +1361,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
     int initializeHighestA4ONumber(FamilyDBYear dbYear)
     {
     	int highestA4ONum = 0;
-    	List<ONCFamily> yearListOfFamilies = dbYear.getList();
-    	for(ONCFamily f: yearListOfFamilies)
+    	List<A4OFamily> yearListOfFamilies = dbYear.getList();
+    	for(A4OFamily f: yearListOfFamilies)
     	{
     		if(isNumeric(f.getONCNum()))
     		{
@@ -1385,8 +1385,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
     	int highestRefNum = 0;
     	for(FamilyDBYear dbYear: familyDB)
     	{
-    		List<ONCFamily> yearListOfFamilies = dbYear.getList();
-    		for(ONCFamily f: yearListOfFamilies)
+    		List<A4OFamily> yearListOfFamilies = dbYear.getList();
+    		for(A4OFamily f: yearListOfFamilies)
     		{
     			if(f.getReferenceNum().startsWith("A"))
     			{
@@ -1402,7 +1402,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 
     int searchForONCNumber(int year, String oncnum)
     {
-    	List<ONCFamily> oncFamAL = familyDB.get(year-BASE_YEAR).getList();
+    	List<A4OFamily> oncFamAL = familyDB.get(year-BASE_YEAR).getList();
     	
     	int index = 0;
     	while(index < oncFamAL.size() && !oncnum.equals(oncFamAL.get(index).getONCNum()))
@@ -1413,18 +1413,18 @@ public class ServerFamilyDB extends ServerSeasonalDB
     
     private class FamilyDBYear extends ServerDBYear
     {
-    	private List<ONCFamily> fList;
+    	private List<A4OFamily> fList;
     	
     	FamilyDBYear(int year)
     	{
     		super();
-    		fList = new ArrayList<ONCFamily>();
+    		fList = new ArrayList<A4OFamily>();
     	}
     	
     	//getters
-    	List<ONCFamily> getList() { return fList; }
+    	List<A4OFamily> getList() { return fList; }
     	
-    	void add(ONCFamily addedFamily) { fList.add(addedFamily); }
+    	void add(A4OFamily addedFamily) { fList.add(addedFamily); }
     }
     
     void convertFamilyDBForStatusChanges(int year)
@@ -1632,10 +1632,10 @@ public class ServerFamilyDB extends ServerSeasonalDB
     
    
     
-    private static class ONCFamilyONCNumComparator implements Comparator<ONCFamily>
+    private static class ONCFamilyONCNumComparator implements Comparator<A4OFamily>
 	{
 		@Override
-		public int compare(ONCFamily o1, ONCFamily o2)
+		public int compare(A4OFamily o1, A4OFamily o2)
 		{
 			if(isNumeric(o1.getONCNum()) && isNumeric(o2.getONCNum()))
 			{

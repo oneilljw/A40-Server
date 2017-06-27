@@ -13,7 +13,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import actforothers.Address;
-import actforothers.ONCFamily;
+import actforothers.A4OFamily;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -132,10 +132,10 @@ public class ApartmentDB
     	reader.close();
 	}
 	
-	static void addPriorYearApartments(List<ONCFamily> famList)
+	static void addPriorYearApartments(List<A4OFamily> famList)
 	{
 		//add the prior year addresses that had units that weren't already in the db
-		for(ONCFamily f:famList)
+		for(A4OFamily f:famList)
 		{
 			//see if the family was served and address had a unit and  already in the data base
 			//if they aren't in the database add them.

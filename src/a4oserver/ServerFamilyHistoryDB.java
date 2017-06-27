@@ -11,7 +11,7 @@ import java.util.TimeZone;
 import actforothers.FamilyGiftStatus;
 import actforothers.HistoryRequest;
 import actforothers.ONCFamilyHistory;
-import actforothers.ONCFamily;
+import actforothers.A4OFamily;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -199,7 +199,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		}
 		
 		//get prior delivery for this family
-		ONCFamily fam = serverFamilyDB.getFamily(year, addedHisoryObj.getFamID());
+		A4OFamily fam = serverFamilyDB.getFamily(year, addedHisoryObj.getFamID());
 		ONCFamilyHistory priorDelivery = getHistory(year, fam.getHistoryID());
 		
 		//if there was a prior delivery, then update the status and counts

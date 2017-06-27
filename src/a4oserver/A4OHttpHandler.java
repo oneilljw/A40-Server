@@ -30,7 +30,7 @@ import actforothers.MealStatus;
 import actforothers.MealType;
 import actforothers.ONCAdult;
 import actforothers.ONCChild;
-import actforothers.ONCFamily;
+import actforothers.A4OFamily;
 import actforothers.ONCMeal;
 import actforothers.ONCServerUser;
 import actforothers.ONCUser;
@@ -1347,7 +1347,7 @@ public class A4OHttpHandler implements HttpHandler
 		//whether to perform a prior year check after the family and children objects are created
 		boolean bNewFamily = familyMap.get("targetid").contains("NNA") || familyMap.get("targetid").equals("");
 		
-		ONCFamily fam = new ONCFamily(-1, wc.getWebUser().getLNFI(), "NNA",
+		A4OFamily fam = new A4OFamily(-1, wc.getWebUser().getLNFI(), "NNA",
 					familyMap.get("targetid"), "B-DI", 
 					familyMap.get("language").equals("English") ? "Yes" : "No", familyMap.get("language"),
 					familyMap.get("hohFN"), familyMap.get("hohLN"), familyMap.get("housenum"),
@@ -1364,7 +1364,7 @@ public class A4OHttpHandler implements HttpHandler
 					addedMeal != null ? MealStatus.Requested : MealStatus.None,
 					Transportation.valueOf(familyMap.get("transportation")));
 			
-		ONCFamily addedFamily = serverFamilyDB.add(year, fam);
+		A4OFamily addedFamily = serverFamilyDB.add(year, fam);
 		
 		List<ONCChild> addedChildList = new ArrayList<ONCChild>();
 		List<ONCAdult> addedAdultList = new ArrayList<ONCAdult>();
@@ -1410,7 +1410,7 @@ public class A4OHttpHandler implements HttpHandler
 			}
 			
 			//now that we have added children, we can check for duplicate family in this year.
-			ONCFamily dupFamily = serverFamilyDB.getDuplicateFamily(year, addedFamily, addedChildList);
+			A4OFamily dupFamily = serverFamilyDB.getDuplicateFamily(year, addedFamily, addedChildList);
 			
 //			if(dupFamily != null)
 //				System.out.println(String.format("HttpHandler.processFamilyReferral: "
@@ -1423,7 +1423,7 @@ public class A4OHttpHandler implements HttpHandler
 				//added family not in current year, check if in prior years
 				//only check new families for prior year existence. If a re-referral,
 				//we already know the reference id was from prior year
-				ONCFamily pyFamily = null;
+				A4OFamily pyFamily = null;
 				if(bNewFamily)	
 				{
 					pyFamily = serverFamilyDB.isPriorYearFamily(year, addedFamily, addedChildList);
@@ -1549,7 +1549,7 @@ public class A4OHttpHandler implements HttpHandler
 				clientMgr.notifyAllInYearClients(year, mssg);
 			}
 			
-			mssg = "ADDED_FAMILY" + gson.toJson(addedFamily, ONCFamily.class);
+			mssg = "ADDED_FAMILY" + gson.toJson(addedFamily, A4OFamily.class);
 			clientMgr.notifyAllInYearClients(year, mssg);
 			
 			//must add family before meal, since desktop client meal ui updates 
@@ -1636,7 +1636,7 @@ public class A4OHttpHandler implements HttpHandler
 		
 		//get the family object from the database
 		String targetID = (String) params.get("targetid");
-		ONCFamily updateFam = serverFamilyDB.getFamilyByTargetID(year, targetID);
+		A4OFamily updateFam = serverFamilyDB.getFamilyByTargetID(year, targetID);
 		
 		//if found, make the changes to the family object
 		if(updateFam != null)
@@ -1691,7 +1691,7 @@ public class A4OHttpHandler implements HttpHandler
 				ClientManager clientMgr = ClientManager.getInstance();
 				Gson gson = new Gson();
 				String mssg;
-				mssg = "UPDATED_FAMILY" + gson.toJson(updateFam, ONCFamily.class);
+				mssg = "UPDATED_FAMILY" + gson.toJson(updateFam, A4OFamily.class);
 				clientMgr.notifyAllInYearClients(year, mssg);
 				return new FamilyResponseCode(0, updateFam.getHOHLastName() + " Family Update Accepted");
 			}
