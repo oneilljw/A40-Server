@@ -92,25 +92,37 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		ONCFamilyHistory addedHistoryObj = gson.fromJson(json, ONCFamilyHistory.class);
 		
-		//add the new object to the data base
+		//find the replaced history object. Search from the last item in the history list,
+		//since it will be the most recent.
+		ONCFamilyHistory oldFH = null;
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);
+		List<ONCFamilyHistory> histList = histDBYear.getList();
+		int index = histList.size() -1;
+		while(index > -1 && histList.get(index).getFamID() != addedHistoryObj.getFamID())
+			index--;
+		
+		if(index > -1)
+		{
+			//old history exists, check for status update
+			checkForAutomaticGiftStatusChange((oldFH = histList.get(index)), addedHistoryObj);
+		}
+		
+		System.out.println(String.format("ServerFamHistDB.add: newFH gift status: %s",
+				addedHistoryObj.getGiftStatus().toString()));
+		
+		//add the new object to the data base
 		addedHistoryObj.setID(histDBYear.getNextID());
 		addedHistoryObj.setDateChanged(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
 		
 		//if family gift status is greater than FamilyGiftStatus.Assigned, retain the assignee
-		if(addedHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) > 0)
-		{
-			//find the last object, there has to be one for the status > Assigned
-			ONCFamilyHistory latestFHObj = getLastFamilyHistory(year, addedHistoryObj.getFamID());
-			if(latestFHObj != null)
-				addedHistoryObj.setPartnerID(latestFHObj.getPartnerID());
-		}
+		if(oldFH != null && addedHistoryObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) > 0)
+			addedHistoryObj.setPartnerID(oldFH.getPartnerID());
 		
 		//add the item to the proper year's list and mark the list as changed
 		histDBYear.add(addedHistoryObj);
 		histDBYear.setChanged(true);
 		
-		//notify the corresponding family that delivery has changed and
+		//notify the corresponding family the history object has changed and
 		//check to see if new delivery assigned or removed a delivery from a driver
 		ServerFamilyDB serverFamilyDB = null;
 		ServerVolunteerDB driverDB = null;
@@ -126,11 +138,11 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		}
 		
 		//get prior delivery for this family
-		ONCFamily fam = serverFamilyDB.getFamily(year, addedHistoryObj.getFamID());
-		ONCFamilyHistory priorHistoryObj = getHistory(year, fam.getDeliveryID());
-		
-		//if there was a prior history and the gift status was associated with a delivery, update the 
-		//status and counts
+//		ONCFamily fam = serverFamilyDB.getFamily(year, addedHistoryObj.getFamID());
+//		ONCFamilyHistory priorHistoryObj = getHistory(year, fam.getDeliveryID());
+//		
+//		//if there was a prior history and the gift status was associated with a delivery, update the 
+//		//status and counts
 //		if(priorHistoryObj != null)
 //		{
 //			//If prior status == ASSIGNED && new status < ASSIGNED, decrement the prior delivery driver
@@ -188,7 +200,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		
 		//get prior delivery for this family
 		ONCFamily fam = serverFamilyDB.getFamily(year, addedHisoryObj.getFamID());
-		ONCFamilyHistory priorDelivery = getHistory(year, fam.getDeliveryID());
+		ONCFamilyHistory priorDelivery = getHistory(year, fam.getHistoryID());
 		
 		//if there was a prior delivery, then update the status and counts
 //		if(priorDelivery != null)
@@ -222,30 +234,25 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		return "ADDED_DELIVERY" + gson.toJson(addedHisoryObj, ONCFamilyHistory.class);
 	}
-/*	
-	String addFamilyHistoryList(int year, String historyGroupJson)
+	
+	/***
+	 * Checks for partner changes and automatically changes the gift status. If current gift status
+	 * is Requested and the partner is changing from unassigned to assigned, change the status as an 
+	 * example
+	 */
+	void checkForAutomaticGiftStatusChange(ONCFamilyHistory oldFH, ONCFamilyHistory newFH)
 	{
-		ClientManager clientMgr = ClientManager.getInstance();
+		System.out.println(String.format("ServerFamHistDB.checkForAuto: oldFHPartID= %d, newFHPartID= %d",
+				oldFH.getPartnerID(), newFH.getPartnerID() ));
 		
-		//un-bundle to list of ONCFamilyHistory objects
-		Gson gson = new Gson();
-		Type listOfHistoryObjects = new TypeToken<ArrayList<ONCFamilyHistory>>(){}.getType();
-		
-		List<ONCFamilyHistory> famHistoryList = gson.fromJson(historyGroupJson, listOfHistoryObjects);
-		
-		//for each history object in the list, add it to the database and notify all clients that
-		//it was added
-		for(ONCFamilyHistory addedHistoryObj:famHistoryList)
-		{
-			String response = add(year, addedHistoryObj);
-			//if add was successful, need to q the change to all in-year clients
-			//notify in year clients of change
-	    	clientMgr.notifyAllInYearClients(year, response);
-		}
-		
-		return "ADDED_GROUP_DELIVERIES";
+		if(oldFH.getPartnerID() == -1 && newFH.getPartnerID() > -1)
+			newFH.setFamilyGiftStatus(FamilyGiftStatus.Assigned);
+		else if(oldFH.getPartnerID() > -1 && newFH.getPartnerID() == -1)
+			newFH.setFamilyGiftStatus(FamilyGiftStatus.Requested);
+		else if(oldFH.getPartnerID() != newFH.getPartnerID())
+			newFH.setFamilyGiftStatus(FamilyGiftStatus.Assigned);
 	}
-*/	
+	
 	ONCFamilyHistory addFamilyHistoryObject(int year, ONCFamilyHistory addedFamHistObj)
 	{
 		ClientManager clientMgr = ClientManager.getInstance();

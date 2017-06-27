@@ -326,8 +326,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				(currFam.getFamilyStatus() != updatedFamily.getFamilyStatus() || currFam.getGiftStatus() != updatedFamily.getGiftStatus()))
 			{
 				int histID = addHistoryItem(year, updatedFamily.getID(), updatedFamily.getFamilyStatus(), 
-						updatedFamily.getGiftStatus(), updatedFamily.getDeliveryID(), "Status Changed", updatedFamily.getChangedBy());
-				updatedFamily.setDeliveryID(histID);
+						updatedFamily.getGiftStatus(), updatedFamily.getHistoryID(), "Status Changed", updatedFamily.getChangedBy());
+				updatedFamily.setHistoryID(histID);
 			}
 			
 			fAL.set(index, updatedFamily);
@@ -376,11 +376,11 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			if(currFam != null && 
 				(currFam.getFamilyStatus() != updatedFamily.getFamilyStatus() || currFam.getGiftStatus() != updatedFamily.getGiftStatus()))
 			{
-				ONCFamilyHistory currFH = familyHistoryDB.getHistory(year, currFam.getDeliveryID());
+				ONCFamilyHistory currFH = familyHistoryDB.getHistory(year, currFam.getHistoryID());
 				
 				int histID = addHistoryItem(year, updatedFamily.getID(), updatedFamily.getFamilyStatus(), 
 						updatedFamily.getGiftStatus(), currFH.getPartnerID(), "Status Changed", updatedFamily.getChangedBy());
-				updatedFamily.setDeliveryID(histID);
+				updatedFamily.setHistoryID(histID);
 			}
 			
 			fAL.set(index, updatedFamily);
@@ -453,7 +453,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			//add to the family history 
 			int histID = addHistoryItem(year, addedFam.getID(), addedFam.getFamilyStatus(), addedFam.getGiftStatus(),
 										-1, "Family Referred", addedFam.getChangedBy());
-			addedFam.setDeliveryID(histID);
+			addedFam.setHistoryID(histID);
 			
 			//add to the family data base
 			fDBYear.add(addedFam);
@@ -578,7 +578,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			//add to the family history 
 			int histID = addHistoryItem(year, addedFam.getID(), addedFam.getFamilyStatus(), addedFam.getGiftStatus(),
 										-1, "Family Referred", addedFam.getChangedBy());
-			addedFam.setDeliveryID(histID);
+			addedFam.setHistoryID(histID);
 			
 			//add to the family data base
 			fDBYear.add(addedFam);
@@ -618,7 +618,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				
 				if(updatedFam != null)
 				{
-					updatedFam.setDeliveryID(addedFamHistObj.getID());
+					updatedFam.setHistoryID(addedFamHistObj.getID());
 					updatedFam.setFamilyStatus(addedFamHistObj.getFamilyStatus());
 					fDBYear.setChanged(true);
 					
@@ -945,8 +945,8 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		FamilyDBYear famDBYear = familyDB.get(year - BASE_YEAR);
 		ONCFamily fam = getFamily(year, addedHistObj.getFamID());
 		
-		//update the delivery ID and delivery status
-		fam.setDeliveryID(addedHistObj.getID());
+		//update the history ID and gift status
+		fam.setHistoryID(addedHistObj.getID());
 		fam.setGiftStatus(addedHistObj.getGiftStatus());
 		famDBYear.setChanged(true);
 		
