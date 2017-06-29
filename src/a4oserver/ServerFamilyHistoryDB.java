@@ -10,7 +10,7 @@ import java.util.TimeZone;
 
 import actforothers.FamilyGiftStatus;
 import actforothers.HistoryRequest;
-import actforothers.ONCFamilyHistory;
+import actforothers.A4OFamilyHistory;
 import actforothers.A4OFamily;
 
 import com.google.gson.Gson;
@@ -59,23 +59,23 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	String getFamilyHistory(int year)
 	{
 		Gson gson = new Gson();
-		Type listtype = new TypeToken<ArrayList<ONCFamilyHistory>>(){}.getType();
+		Type listtype = new TypeToken<ArrayList<A4OFamilyHistory>>(){}.getType();
 			
 		String response = gson.toJson(famHistDB.get(year - BASE_YEAR).getList(), listtype);
 		return response;	
 	}
 	
-	ONCFamilyHistory getLastFamilyHistory(int year, int famID)
+	A4OFamilyHistory getLastFamilyHistory(int year, int famID)
 	{
-		ONCFamilyHistory latestFamilyHistoryObj = null;
+		A4OFamilyHistory latestFamilyHistoryObj = null;
 		
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);
-		for(ONCFamilyHistory fhObj : histDBYear.getList())
+		for(A4OFamilyHistory fhObj : histDBYear.getList())
 		{
 			if(fhObj.getFamID() == famID)
 			{
 				if(latestFamilyHistoryObj == null ||
-				    fhObj.getdChanged().after(latestFamilyHistoryObj.getdChanged()))
+				    fhObj.getTimestamp().after(latestFamilyHistoryObj.getTimestamp()))
 				{
 					latestFamilyHistoryObj = fhObj;
 				}
@@ -90,25 +90,19 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	{
 		//Create a history object for the new delivery
 		Gson gson = new Gson();
-		ONCFamilyHistory addedHistoryObj = gson.fromJson(json, ONCFamilyHistory.class);
+		A4OFamilyHistory addedHistoryObj = gson.fromJson(json, A4OFamilyHistory.class);
 		
 		//find the replaced history object. Search from the last item in the history list,
 		//since it will be the most recent.
-		ONCFamilyHistory oldFH = null;
+		A4OFamilyHistory oldFH = null;
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);
-		List<ONCFamilyHistory> histList = histDBYear.getList();
+		List<A4OFamilyHistory> histList = histDBYear.getList();
 		int index = histList.size() -1;
 		while(index > -1 && histList.get(index).getFamID() != addedHistoryObj.getFamID())
 			index--;
 		
-		if(index > -1)
-		{
-			//old history exists, check for status update
+		if(index > -1)	//old history exists, check for status update
 			checkForAutomaticGiftStatusChange((oldFH = histList.get(index)), addedHistoryObj);
-		}
-		
-		System.out.println(String.format("ServerFamHistDB.add: newFH gift status: %s",
-				addedHistoryObj.getGiftStatus().toString()));
 		
 		//add the new object to the data base
 		addedHistoryObj.setID(histDBYear.getNextID());
@@ -170,11 +164,11 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		if(serverFamilyDB != null)
 			serverFamilyDB.updateFamilyHistory(year, addedHistoryObj);
 					
-		return "ADDED_DELIVERY" + gson.toJson(addedHistoryObj, ONCFamilyHistory.class);
+		return "ADDED_DELIVERY" + gson.toJson(addedHistoryObj, A4OFamilyHistory.class);
 	}
 	
 	//used when adding processing automated call results
-	String add(int year, ONCFamilyHistory addedHisoryObj)
+	String add(int year, A4OFamilyHistory addedHisoryObj)
 	{
 		//add the new object to the data base
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);
@@ -200,7 +194,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		
 		//get prior delivery for this family
 		A4OFamily fam = serverFamilyDB.getFamily(year, addedHisoryObj.getFamID());
-		ONCFamilyHistory priorDelivery = getHistory(year, fam.getHistoryID());
+		A4OFamilyHistory priorDelivery = getHistory(year, fam.getHistoryID());
 		
 		//if there was a prior delivery, then update the status and counts
 //		if(priorDelivery != null)
@@ -232,7 +226,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 			serverFamilyDB.updateFamilyHistory(year, addedHisoryObj);
 
 		Gson gson = new Gson();
-		return "ADDED_DELIVERY" + gson.toJson(addedHisoryObj, ONCFamilyHistory.class);
+		return "ADDED_DELIVERY" + gson.toJson(addedHisoryObj, A4OFamilyHistory.class);
 	}
 	
 	/***
@@ -240,11 +234,8 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	 * is Requested and the partner is changing from unassigned to assigned, change the status as an 
 	 * example
 	 */
-	void checkForAutomaticGiftStatusChange(ONCFamilyHistory oldFH, ONCFamilyHistory newFH)
+	void checkForAutomaticGiftStatusChange(A4OFamilyHistory oldFH, A4OFamilyHistory newFH)
 	{
-		System.out.println(String.format("ServerFamHistDB.checkForAuto: oldFHPartID= %d, newFHPartID= %d",
-				oldFH.getPartnerID(), newFH.getPartnerID() ));
-		
 		if(oldFH.getPartnerID() == -1 && newFH.getPartnerID() > -1)
 			newFH.setFamilyGiftStatus(FamilyGiftStatus.Assigned);
 		else if(oldFH.getPartnerID() > -1 && newFH.getPartnerID() == -1)
@@ -253,7 +244,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 			newFH.setFamilyGiftStatus(FamilyGiftStatus.Assigned);
 	}
 	
-	ONCFamilyHistory addFamilyHistoryObject(int year, ONCFamilyHistory addedFamHistObj)
+	A4OFamilyHistory addFamilyHistoryObject(int year, A4OFamilyHistory addedFamHistObj)
 	{
 		ClientManager clientMgr = ClientManager.getInstance();
 		//add the new object to the data base
@@ -265,7 +256,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		if(addedFamHistObj.getGiftStatus().compareTo(FamilyGiftStatus.Assigned) > 0)
 		{
 			//find the last object, there has to be one for the status > Assigned
-			ONCFamilyHistory latestFHObj = getLastFamilyHistory(year, addedFamHistObj.getFamID());
+			A4OFamilyHistory latestFHObj = getLastFamilyHistory(year, addedFamHistObj.getFamID());
 			if(latestFHObj != null)
 				addedFamHistObj.setPartnerID(latestFHObj.getPartnerID());
 		}
@@ -274,14 +265,14 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		histDBYear.setChanged(true);
 		
 		Gson gson = new Gson();
-		clientMgr.notifyAllInYearClients(year, "ADDED_DELIVERY"+ gson.toJson(addedFamHistObj, ONCFamilyHistory.class));
+		clientMgr.notifyAllInYearClients(year, "ADDED_DELIVERY"+ gson.toJson(addedFamHistObj, A4OFamilyHistory.class));
 		
 		return addedFamHistObj;
 	}
 	
-	ONCFamilyHistory getHistory(int year, int histID)
+	A4OFamilyHistory getHistory(int year, int histID)
 	{
-		List<ONCFamilyHistory> histAL = famHistDB.get(year-BASE_YEAR).getList();
+		List<A4OFamilyHistory> histAL = famHistDB.get(year-BASE_YEAR).getList();
 		int index = 0;	
 		while(index < histAL.size() && histAL.get(index).getID() != histID)
 			index++;
@@ -296,11 +287,11 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	{
 		//Create an object for the updated family history
 		Gson gson = new Gson();
-		ONCFamilyHistory updatedHistory = gson.fromJson(json, ONCFamilyHistory.class);
+		A4OFamilyHistory updatedHistory = gson.fromJson(json, A4OFamilyHistory.class);
 		
 		//Find the position for the current object being replaced
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);
-		List<ONCFamilyHistory> histAL = histDBYear.getList();
+		List<A4OFamilyHistory> histAL = histDBYear.getList();
 		int index = 0;
 		while(index < histAL.size() && histAL.get(index).getID() != updatedHistory.getID())
 			index++;
@@ -310,7 +301,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		{
 			histAL.set(index, updatedHistory);
 			histDBYear.setChanged(true);
-			return "UPDATED_DELIVERY" + gson.toJson(updatedHistory, ONCFamilyHistory.class);
+			return "UPDATED_DELIVERY" + gson.toJson(updatedHistory, A4OFamilyHistory.class);
 		}
 		else
 			return "UPDATE_FAILED";
@@ -323,16 +314,16 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		Gson gson = new Gson();
 		HistoryRequest histReq = gson.fromJson(reqjson, HistoryRequest.class);
 			
-		List<ONCFamilyHistory> famHistory = new ArrayList<ONCFamilyHistory>();
-		List<ONCFamilyHistory> famHistAL = famHistDB.get(year - BASE_YEAR).getList();
+		List<A4OFamilyHistory> famHistory = new ArrayList<A4OFamilyHistory>();
+		List<A4OFamilyHistory> famHistAL = famHistDB.get(year - BASE_YEAR).getList();
 			
 		//Search for deliveries that match the delivery Family ID
-		for(ONCFamilyHistory fh:famHistAL)
+		for(A4OFamilyHistory fh:famHistAL)
 			if(fh.getFamID() == histReq.getID())
 				famHistory.add(fh);
 			
 		//Convert list to json and return it
-		Type listtype = new TypeToken<ArrayList<ONCFamilyHistory>>(){}.getType();
+		Type listtype = new TypeToken<ArrayList<A4OFamilyHistory>>(){}.getType();
 			
 		String response = gson.toJson(famHistory, listtype);
 		return response;
@@ -343,7 +334,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	void addObject(int year, String[] nextLine)
 	{
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);
-		histDBYear.add(new ONCFamilyHistory(nextLine));	
+		histDBYear.add(new A4OFamilyHistory(nextLine));	
 	}
 	
 	
@@ -360,18 +351,18 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	
 	 private class FamilyHistoryDBYear extends ServerDBYear
 	 {
-		private List<ONCFamilyHistory> histList;
+		private List<A4OFamilyHistory> histList;
 	    	
 	    FamilyHistoryDBYear(int year)
 	    {
 	    	super();
-	    	histList = new ArrayList<ONCFamilyHistory>();
+	    	histList = new ArrayList<A4OFamilyHistory>();
 	    }
 	    
 	    //getters
-	    List<ONCFamilyHistory> getList() { return histList; }
+	    List<A4OFamilyHistory> getList() { return histList; }
 	    
-	    void add(ONCFamilyHistory addedHistObj) { histList.add(addedHistObj); }
+	    void add(A4OFamilyHistory addedHistObj) { histList.add(addedHistObj); }
 	 }
 
 	@Override

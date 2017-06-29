@@ -103,9 +103,9 @@ public class ServerMealDB extends ServerSeasonalDB
 		
 		//set the status of the added meal relative to a parter change.
 		//This is the rules engine that governs meal status
-		if(currMeal != null && currMeal.getPartnerID() != addedMeal.getPartnerID())
+		if(currMeal != null && currMeal.getMealPartnerID() != addedMeal.getMealPartnerID())
 		{
-			if(addedMeal.getPartnerID() == -1)
+			if(addedMeal.getMealPartnerID() == -1)
 				addedMeal.setMealStatus(MealStatus.Requested);
 			else
 				addedMeal.setMealStatus(MealStatus.Assigned);
@@ -116,7 +116,7 @@ public class ServerMealDB extends ServerSeasonalDB
 		try
 		{
 			serverFamilyDB = ServerFamilyDB.getInstance();
-			serverFamilyDB.familyMealAdded(year, addedMeal);
+			serverFamilyDB.updatedFamilyMeal(year, addedMeal);
 		}
 		catch (FileNotFoundException e) 
 		{

@@ -25,7 +25,7 @@ import actforothers.FamilyStatus;
 import actforothers.ONCAdult;
 import actforothers.ONCChild;
 import actforothers.ONCChildWish;
-import actforothers.ONCFamilyHistory;
+import actforothers.A4OFamilyHistory;
 import actforothers.A4OFamily;
 import actforothers.ONCMeal;
 import actforothers.ONCUser;
@@ -376,7 +376,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			if(currFam != null && 
 				(currFam.getFamilyStatus() != updatedFamily.getFamilyStatus() || currFam.getGiftStatus() != updatedFamily.getGiftStatus()))
 			{
-				ONCFamilyHistory currFH = familyHistoryDB.getHistory(year, currFam.getHistoryID());
+				A4OFamilyHistory currFH = familyHistoryDB.getHistory(year, currFam.getHistoryID());
 				
 				int histID = addHistoryItem(year, updatedFamily.getID(), updatedFamily.getFamilyStatus(), 
 						updatedFamily.getGiftStatus(), currFH.getPartnerID(), "Status Changed", updatedFamily.getChangedBy());
@@ -597,9 +597,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		
 		//un-bundle to list of ONCFamilyHistory objects
 		Gson gson = new Gson();
-		Type listOfHistoryObjects = new TypeToken<ArrayList<ONCFamilyHistory>>(){}.getType();
+		Type listOfHistoryObjects = new TypeToken<ArrayList<A4OFamilyHistory>>(){}.getType();
 		
-		List<ONCFamilyHistory> famHistoryList = gson.fromJson(historyGroupJson, listOfHistoryObjects);
+		List<A4OFamilyHistory> famHistoryList = gson.fromJson(historyGroupJson, listOfHistoryObjects);
 		
 		ServerFamilyHistoryDB famHistDB;
 		try 
@@ -608,9 +608,9 @@ public class ServerFamilyDB extends ServerSeasonalDB
 			
 			//for each history object in the list, add it to the database and notify all clients that
 			//it was added
-			for(ONCFamilyHistory reqFamHistoryObj:famHistoryList)
+			for(A4OFamilyHistory reqFamHistoryObj:famHistoryList)
 			{
-				ONCFamilyHistory addedFamHistObj = famHistDB.addFamilyHistoryObject(year, reqFamHistoryObj);
+				A4OFamilyHistory addedFamHistObj = famHistDB.addFamilyHistoryObject(year, reqFamHistoryObj);
 				
 				//find the family
 				FamilyDBYear fDBYear = familyDB.get(year - BASE_YEAR);
@@ -822,10 +822,10 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	int addHistoryItem(int year, int famID, FamilyStatus fs, FamilyGiftStatus fgs, int partnerID,
 						String reason, String changedBy)
 	{
-		ONCFamilyHistory reqFamHistObj = new ONCFamilyHistory(-1, famID, fs, fgs, partnerID, reason,
+		A4OFamilyHistory reqFamHistObj = new A4OFamilyHistory(-1, famID, fs, fgs, partnerID, reason,
 				 changedBy, Calendar.getInstance(TimeZone.getTimeZone("UTC")));
 		
-		ONCFamilyHistory addedFamHistory = familyHistoryDB.addFamilyHistoryObject(year, reqFamHistObj);
+		A4OFamilyHistory addedFamHistory = familyHistoryDB.addFamilyHistoryObject(year, reqFamHistObj);
 		
 		return addedFamHistory.getID();
 	}
@@ -837,13 +837,14 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	 * @param year
 	 * @param addedMeal
 	 */
-	void familyMealAdded(int year, ONCMeal addedMeal)
+	void updatedFamilyMeal(int year, ONCMeal addedMeal)
 	{
 		A4OFamily fam = getFamily(year, addedMeal.getFamilyID());
 		if(fam != null && fam.getMealStatus() != addedMeal.getStatus())
 		{
 			fam.setMealID(addedMeal.getID());
 			fam.setMealStatus(addedMeal.getStatus());
+			fam.setChangedBy(addedMeal.getChangedBy());
 			familyDB.get(year - BASE_YEAR).setChanged(true);
 			
 			Gson gson = new Gson();
@@ -939,7 +940,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 //		return lowestfamstatus;
 //	}
 	
-	void updateFamilyHistory(int year, ONCFamilyHistory addedHistObj)
+	void updateFamilyHistory(int year, A4OFamilyHistory addedHistObj)
 	{
 		//find the family
 		FamilyDBYear famDBYear = familyDB.get(year - BASE_YEAR);
@@ -948,6 +949,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		//update the history ID and gift status
 		fam.setHistoryID(addedHistObj.getID());
 		fam.setGiftStatus(addedHistObj.getGiftStatus());
+		fam.setChangedBy(addedHistObj.getChangedBy());
 		famDBYear.setChanged(true);
 		
 		//notify in year clients of change
@@ -996,12 +998,12 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	
 	void save(int year)
 	{
-		String[] header = {"ONC ID", "ONCNum", "Region", "ODB Family #", "Batch #", "DNS Code", "Family Status", "Delivery Status",
-				"Speak English?","Language if No", "Caller", "Notes", "Delivery Instructions",
+		String[] header = {"A4O ID", "A4O Num", "Region", "Ref #", "Batch #", "DNS Code", "Family Status", "Gift Status",
+				"Speak English?","Language if No", "Changed By", "Notes", "Delivery Instructions",
 				"Client Family", "First Name", "Last Name", "House #", "Street", "Unit #", "City", "Zip Code",
 				"Substitute Delivery Address", "All Phone #'s", "Home Phone", "Other Phone", "Family Email", 
-				"ODB Details", "Children Names", "Schools", "ODB WishList",
-				"Adopted For", "Agent ID", "Delivery ID", "Meal ID", "Meal Status", "# of Bags", "# of Large Items", 
+				"Details", "Children Names", "Schools", "WishList",
+				"Adopted For", "Agent ID", "History ID", "Meal ID", "Meal Status", "# of Bags", "# of Large Items", 
 				"Stoplight Pos", "Stoplight Mssg", "Stoplight C/B", "Transportation", "Gift Card Only"};
 		
 		FamilyDBYear fDBYear = familyDB.get(year - BASE_YEAR);
