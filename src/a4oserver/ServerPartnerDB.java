@@ -23,6 +23,8 @@ public class ServerPartnerDB extends ServerSeasonalDB
 	
 	private static ServerPartnerDB instance = null;
 	
+	private static ClientManager clientMgr;
+	
 	private ServerPartnerDB() throws FileNotFoundException, IOException
 	{
 		//create the partner data bases for TOTAL_YEARS number of years
@@ -49,6 +51,8 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			else
 				partnerDBYear.setNextID(nextID);
 		}
+		
+		clientMgr = ClientManager.getInstance();
 	}
 	
 	public static ServerPartnerDB getInstance() throws FileNotFoundException, IOException
@@ -244,7 +248,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			A4OPartner oldPartner = getPartner(year, oldPartnerID);
 			if(oldPartner != null)
 			{
-				oldPartner.decrementOrnAssigned();
+				oldPartner.decrementGiftsAssigned();
 				partnerDBYear.setChanged(true);
 			}
 		}
@@ -255,7 +259,7 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			A4OPartner newPartner = getPartner(year, newPartnerID);
 			if(newPartner != null)
 			{
-				newPartner.incrementOrnAssigned();
+				newPartner.incrementGiftsAssigned();
 				partnerDBYear.setChanged(true);
 			}
 		}	
@@ -295,25 +299,41 @@ public class ServerPartnerDB extends ServerSeasonalDB
 				
 			}
 			else if(addedWish.getChildWishStatus() == WishStatus.Delivered)
-				partnerList.get(index).incrementOrnDelivered();
+				partnerList.get(index).incrementMealsAssigned();
 			
 			partnerDBYear.setChanged(true);
 		}
 	}
 	
-	void decrementGiftsAssignedCount(int year, int partnerID)
+	void updateAssignedCounts(int year, int partnerID, PartnerAction pa)
 	{
 		PartnerDBYear partnerDBYear = partnerDB.get(year - BASE_YEAR);
-		List<A4OPartner> oAL = partnerDBYear.getList();
+		List<A4OPartner> partnerList = partnerDBYear.getList();
 		int index=0;
-		while(index < oAL.size() && oAL.get(index).getID() != partnerID)
+		while(index < partnerList.size() && partnerList.get(index).getID() != partnerID)
 			index ++;
 		
-		//if partner was found, decrment the count. If not found, ignore the request
-		if(index < oAL.size())
+		//if partner was found, decrement the count, marked the db as changed and notify
+		//all in year clients. If not found, ignore the request
+		if(index < partnerList.size())
 		{
-			oAL.get(index).decrementOrnAssigned();
+			A4OPartner updatedPartner = partnerList.get(index);
+			
+			if(pa == PartnerAction.INCREMENT_GIFT_COUNT)
+				updatedPartner.incrementGiftsAssigned();
+			else if(pa == PartnerAction.DECREMENT_GIFT_COUNT)
+				updatedPartner.decrementGiftsAssigned();
+			else if(pa == PartnerAction.INCREMENT_MEAL_COUNT)
+				updatedPartner.incrementMealsAssigned();
+			else if(pa == PartnerAction.DECREMENT_MEAL_COUNT)
+				updatedPartner.decrementMealsAssigned();
+			
 			partnerDBYear.setChanged(true);
+			
+			//notify in year clients of change
+			Gson gson = new Gson();
+			String response = "UPDATED_PARTNER" + gson.toJson(updatedPartner, A4OPartner.class);
+			clientMgr.notifyAllInYearClients(year, response);
 		}
 	}
 

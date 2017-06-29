@@ -11,7 +11,6 @@ import java.util.TimeZone;
 import actforothers.FamilyGiftStatus;
 import actforothers.HistoryRequest;
 import actforothers.A4OFamilyHistory;
-import actforothers.A4OFamily;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -102,7 +101,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 			index--;
 		
 		if(index > -1)	//old history exists, check for status update
-			checkForAutomaticGiftStatusChange((oldFH = histList.get(index)), addedHistoryObj);
+			checkForAutomaticGiftStatusChange(year, (oldFH = histList.get(index)), addedHistoryObj);
 		
 		//add the new object to the data base
 		addedHistoryObj.setID(histDBYear.getNextID());
@@ -119,14 +118,17 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		//notify the corresponding family the history object has changed and
 		//check to see if new delivery assigned or removed a delivery from a driver
 		ServerFamilyDB serverFamilyDB = null;
-		ServerVolunteerDB driverDB = null;
-		try {
+		try 
+		{
 			serverFamilyDB = ServerFamilyDB.getInstance();
-			driverDB = ServerVolunteerDB.getInstance();
-		} catch (FileNotFoundException e) {
+		} 
+		catch (FileNotFoundException e) 
+		{	
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
+		} 
+		catch (IOException e)
+		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -180,10 +182,10 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		//notify the corresponding family that history object has changed and
 		//check to see if the object was a new delivery assigned or removed a delivery from a driver
 		ServerFamilyDB serverFamilyDB = null;
-		ServerVolunteerDB driverDB = null;
+//		ServerVolunteerDB driverDB = null;
 		try {
 			serverFamilyDB = ServerFamilyDB.getInstance();
-			driverDB = ServerVolunteerDB.getInstance();
+//			driverDB = ServerVolunteerDB.getInstance();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -193,10 +195,10 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		}
 		
 		//get prior delivery for this family
-		A4OFamily fam = serverFamilyDB.getFamily(year, addedHisoryObj.getFamID());
-		A4OFamilyHistory priorDelivery = getHistory(year, fam.getHistoryID());
-		
-		//if there was a prior delivery, then update the status and counts
+//		A4OFamily fam = serverFamilyDB.getFamily(year, addedHisoryObj.getFamID());
+//		A4OFamilyHistory priorDelivery = getHistory(year, fam.getHistoryID());
+//		
+//		//if there was a prior delivery, then update the status and counts
 //		if(priorDelivery != null)
 //		{
 //			//If prior status == ASSIGNED && new status < ASSIGNED, decrement the prior delivery driver
@@ -234,14 +236,37 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	 * is Requested and the partner is changing from unassigned to assigned, change the status as an 
 	 * example
 	 */
-	void checkForAutomaticGiftStatusChange(A4OFamilyHistory oldFH, A4OFamilyHistory newFH)
+	void checkForAutomaticGiftStatusChange(int year, A4OFamilyHistory oldFH, A4OFamilyHistory newFH)
 	{
+		ServerPartnerDB serverPartnerDB = null;
+		try 
+		{
+			serverPartnerDB = ServerPartnerDB.getInstance();
+		} 
+		catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		if(oldFH.getPartnerID() == -1 && newFH.getPartnerID() > -1)
+		{
 			newFH.setFamilyGiftStatus(FamilyGiftStatus.Assigned);
+			serverPartnerDB.updateAssignedCounts(year, newFH.getPartnerID(), PartnerAction.INCREMENT_GIFT_COUNT);
+		}
 		else if(oldFH.getPartnerID() > -1 && newFH.getPartnerID() == -1)
+		{
 			newFH.setFamilyGiftStatus(FamilyGiftStatus.Requested);
+			serverPartnerDB.updateAssignedCounts(year, oldFH.getPartnerID(), PartnerAction.DECREMENT_GIFT_COUNT);
+		}
 		else if(oldFH.getPartnerID() != newFH.getPartnerID())
+		{
 			newFH.setFamilyGiftStatus(FamilyGiftStatus.Assigned);
+			serverPartnerDB.updateAssignedCounts(year, newFH.getPartnerID(), PartnerAction.INCREMENT_GIFT_COUNT);
+			serverPartnerDB.updateAssignedCounts(year, oldFH.getPartnerID(), PartnerAction.DECREMENT_GIFT_COUNT);
+		}
 	}
 	
 	A4OFamilyHistory addFamilyHistoryObject(int year, A4OFamilyHistory addedFamHistObj)
@@ -368,7 +393,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 	@Override
 	void save(int year)
 	{
-		String[] header = {"History ID", "Family ID", "Family Status", "Gift Status", "Del By", 
+		String[] header = {"History ID", "Family ID", "Family Status", "Gift Status", "Partner ID", 
 	 			"Notes", "Changed By", "Time Stamp"};
 		
 		FamilyHistoryDBYear histDBYear = famHistDB.get(year - BASE_YEAR);

@@ -24,14 +24,12 @@ import actforothers.FamilyGiftStatus;
 import actforothers.FamilyStatus;
 import actforothers.ONCAdult;
 import actforothers.ONCChild;
-import actforothers.ONCChildWish;
 import actforothers.A4OFamilyHistory;
 import actforothers.A4OFamily;
 import actforothers.ONCMeal;
 import actforothers.ONCUser;
 import actforothers.ONCWebsiteFamily;
 import actforothers.ONCWebsiteFamilyExtended;
-import actforothers.WishStatus;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -41,12 +39,7 @@ import com.google.gson.reflect.TypeToken;
 public class ServerFamilyDB extends ServerSeasonalDB
 {
 	private static final int FAMILYDB_HEADER_LENGTH = 42;
-	
 	private static final int FAMILY_STOPLIGHT_RED = 2;
-	
-	private static final int NUMBER_OF_WISHES_PER_CHILD = 3;
-	private static final String GIFT_CARD_WISH_NAME = "Gift Card";
-	
 	private static final String ODB_FAMILY_MEMBER_COLUMN_SEPARATOR = " - ";
 	
 	private static List<FamilyDBYear> familyDB;

@@ -1,0 +1,9 @@
+package a4oserver;
+
+public enum PartnerAction 
+{
+	INCREMENT_GIFT_COUNT,
+	DECREMENT_GIFT_COUNT,
+	INCREMENT_MEAL_COUNT,
+	DECREMENT_MEAL_COUNT;
+}

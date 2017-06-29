@@ -103,13 +103,14 @@ public class ServerMealDB extends ServerSeasonalDB
 		
 		//set the status of the added meal relative to a parter change.
 		//This is the rules engine that governs meal status
-		if(currMeal != null && currMeal.getMealPartnerID() != addedMeal.getMealPartnerID())
-		{
-			if(addedMeal.getMealPartnerID() == -1)
-				addedMeal.setMealStatus(MealStatus.Requested);
-			else
-				addedMeal.setMealStatus(MealStatus.Assigned);
-		}
+		checkForAutomaticMealStatusChange(year, currMeal, addedMeal);
+//		if(currMeal != null && currMeal.getMealPartnerID() != addedMeal.getMealPartnerID())
+//		{
+//			if(addedMeal.getMealPartnerID() == -1)
+//				addedMeal.setMealStatus(MealStatus.Requested);
+//			else
+//				addedMeal.setMealStatus(MealStatus.Assigned);
+//		}
 		
 		//notify the family database of an added meal
 		ServerFamilyDB serverFamilyDB = null;
@@ -136,6 +137,44 @@ public class ServerMealDB extends ServerSeasonalDB
 		return "ADDED_MEAL" + gson.toJson(addedMeal, ONCMeal.class);
 	}
 	
+	/***
+	 * Checks for partner changes and automatically changes the meal status. If current meal status
+	 * is Requested and the partner is changing from unassigned to assigned, change the status as an 
+	 * example
+	 */
+	void checkForAutomaticMealStatusChange(int year, ONCMeal oldMeal, ONCMeal newMeal)
+	{
+		ServerPartnerDB serverPartnerDB = null;
+		try 
+		{
+			serverPartnerDB = ServerPartnerDB.getInstance();
+		} 
+		catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(oldMeal.getMealPartnerID() == -1 && newMeal.getMealPartnerID() > -1)
+		{
+			newMeal.setMealStatus(MealStatus.Assigned);
+			serverPartnerDB.updateAssignedCounts(year, newMeal.getMealPartnerID(), PartnerAction.INCREMENT_MEAL_COUNT);
+		}
+		else if(oldMeal.getMealPartnerID() > -1 && newMeal.getMealPartnerID() == -1)
+		{
+			newMeal.setMealStatus(MealStatus.Requested);
+			serverPartnerDB.updateAssignedCounts(year, oldMeal.getMealPartnerID(), PartnerAction.DECREMENT_MEAL_COUNT);
+		}
+		else if(oldMeal.getMealPartnerID() != newMeal.getMealPartnerID())
+		{
+			newMeal.setMealStatus(MealStatus.Assigned);
+			serverPartnerDB.updateAssignedCounts(year, newMeal.getMealPartnerID(), PartnerAction.INCREMENT_MEAL_COUNT);
+			serverPartnerDB.updateAssignedCounts(year, oldMeal.getMealPartnerID(), PartnerAction.DECREMENT_MEAL_COUNT);
+		}
+	}
+	
 	//add used by the Web Client. It can only add a new meal when it adds a family
 	ONCMeal add(int year, ONCMeal addedMeal)
 	{
@@ -152,31 +191,7 @@ public class ServerMealDB extends ServerSeasonalDB
 					
 		return addedMeal;
 	}
-/* MEALS ARE NOT UPDATED BY CLIENTS - NEW MEALS ARE ADDED	
-	String update(int year, String mealjson)
-	{
-		//Create a ONCMeal object for the updated meal
-		Gson gson = new Gson();
-		ONCMeal updatedMeal = gson.fromJson(mealjson, ONCMeal.class);
-		
-		//Find the position for the current meal being updated
-		MealDBYear mealDBYear = mealDB.get(year-BASE_YEAR);
-		List<ONCMeal> mealAL = mealDBYear.getList();
-		int index = 0;
-		while(index < mealAL.size() && mealAL.get(index).getID() != updatedMeal.getID())
-			index++;
-		
-		//Replace the current meal object with the update
-		if(index < mealAL.size())
-		{
-			mealAL.set(index, updatedMeal);
-			mealDBYear.setChanged(true);
-			return "UPDATED_MEAL" + gson.toJson(updatedMeal, ONCMeal.class);
-		}
-		else
-			return "UPDATE_FAILED";
-	}
-*/	
+
 	/***
 	 * Used by the web http handler to update a meal after the 
 	 */
