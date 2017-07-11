@@ -122,9 +122,9 @@ public class DesktopClient extends Thread
             output = new PrintWriter(socket.getOutputStream(), true);
             
             //tell the client that they have successfully connected to the server
-            String encryptedResponse = ServerEncryptionManager.encrypt("LOGINConnected to the ONC Server, Please Login");
+            String encryptedResponse = ServerEncryptionManager.encrypt("LOGINConnected to the A4O Server, Please Login");
             output.println(encryptedResponse);
-//          output.println("LOGINConnected to the ONC Server, Please Login");
+//          output.println("LOGINConnected to the A4O Server, Please Login");
         }         
         catch (FileNotFoundException e1) 
         {
@@ -853,7 +853,7 @@ public class DesktopClient extends Thread
     	{
     		clientMgr.clientLoginAttempt(false, String.format("Client %d login request failed: "
     				+ "Downlevel Client, v%s",  id, lo.getVersion()));
-    		value += "Downlevel ONC Client: v" + lo.getVersion() + ", please upgrade";
+    		value += "Downlevel A4O Client: v" + lo.getVersion() + ", please upgrade";
     	}
     	else if(serverUser == null)	//can't find the user in the data base
     	{
