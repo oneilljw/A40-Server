@@ -63,7 +63,8 @@ public class A4OHttpHandler implements HttpHandler
 	private static final String NO_GIFTS_REQUESTED_TEXT = "Gift assistance not requested";
 	private static final String GIFTS_REQUESTED_KEY = "giftreq";
 	
-	private static final boolean B_SERVER_SECURE = true;
+	//toggle this flag relative to an http vice https server
+	private static final boolean B_SERVER_SECURE = false;
 	
 	@SuppressWarnings("unchecked")
 	public void handle(HttpExchange t) throws IOException 

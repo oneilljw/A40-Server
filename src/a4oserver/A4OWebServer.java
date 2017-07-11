@@ -34,7 +34,7 @@ public class A4OWebServer
 	
 	private static A4OWebServer instance = null;
 	private static WebsiteStatus websiteStatus;
-/*	
+	
 	private A4OWebServer() throws IOException
 	{
 		ServerUI serverUI = ServerUI.getInstance();
@@ -78,7 +78,7 @@ public class A4OWebServer
 		return instance;
 	}
 
-*/	
+/*
 	private A4OWebServer()
 	{
 		ServerUI serverUI = ServerUI.getInstance();
@@ -204,7 +204,7 @@ public class A4OWebServer
 		
 		return instance;
 	}
-	
+*/	
 	static String getWebsiteStatusJson()
 	{
 		//build websiteStatusJson
