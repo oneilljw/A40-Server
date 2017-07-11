@@ -157,7 +157,9 @@ public class ServerMealDB extends ServerSeasonalDB
 			e.printStackTrace();
 		}
 		
-		if(oldMeal.getMealPartnerID() == -1 && newMeal.getMealPartnerID() > -1)
+		if(oldMeal == null)
+			newMeal.setMealStatus(MealStatus.Requested);
+		else if(oldMeal.getMealPartnerID() == -1 && newMeal.getMealPartnerID() > -1)
 		{
 			newMeal.setMealStatus(MealStatus.Assigned);
 			serverPartnerDB.updateAssignedCounts(year, newMeal.getMealPartnerID(), PartnerAction.INCREMENT_MEAL_COUNT);
