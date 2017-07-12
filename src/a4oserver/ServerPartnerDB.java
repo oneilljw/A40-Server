@@ -45,7 +45,10 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			//for partners, the leading 4 digits are the year the partner was added. So, must account
 			//for that when determining the next ID number to assign
 			int nextID = getNextID(partnerDBYear.getList());
-			int nextIDinYear = year * 1000;
+			String twoDigitYear = String.valueOf(year).substring(2);
+			int nextIDinYear = Integer.parseInt(twoDigitYear) * 100000;
+
+//			int nextIDinYear = year * 1000;
 			if(nextID < nextIDinYear)
 				partnerDBYear.setNextID(nextIDinYear);
 			else
@@ -281,22 +284,22 @@ public class ServerPartnerDB extends ServerSeasonalDB
 			//found the partner, now determine which field to increment
 			if(addedWish.getChildWishStatus() == WishStatus.Received)
 			{
-				ServerGlobalVariableDB gvDB = null;
-				try 
-				{
-					gvDB = ServerGlobalVariableDB.getInstance();
-					boolean bReceviedBeforeDeadline = addedWish.getChildWishDateChanged().before(gvDB.getDateGiftsRecivedDealdine(year));
+	//			ServerGlobalVariableDB gvDB = null;
+	//			try 
+	//			{
+	//				gvDB = ServerGlobalVariableDB.getInstance();
+	//				boolean bReceviedBeforeDeadline = addedWish.getChildWishDateChanged().before(gvDB.getDateGiftsRecivedDealdine(year));
 //					partnerList.get(index).incrementOrnReceived(bReceviedBeforeDeadline);
-				} 
-				catch (FileNotFoundException e) 
-				{
-					// TODO Auto-generated catch block
-				} 
-				catch (IOException e) 
-				{
-					// TODO Auto-generated catch block
-				}
-				
+	//			} 
+	//			catch (FileNotFoundException e) 
+	//			{
+	//				// TODO Auto-generated catch block
+	//			} 
+	//			catch (IOException e) 
+	//			{
+	//				// TODO Auto-generated catch block
+	//			}
+	//			
 			}
 			else if(addedWish.getChildWishStatus() == WishStatus.Delivered)
 				partnerList.get(index).incrementMealsAssigned();
@@ -383,7 +386,10 @@ public class ServerPartnerDB extends ServerSeasonalDB
 		}
 		
 		//set the nextID for the newly created PartnerDBYear
-		partnerDBYear.setNextID(newYear*1000);	//all partner id's start with current year
+		String twoDigitYear = String.valueOf(newYear).substring(2);
+		int nextIDinYear = Integer.parseInt(twoDigitYear) * 100000;
+		partnerDBYear.setNextID(nextIDinYear);	//all partner id's start with current year
+//		partnerDBYear.setNextID(newYear*1000);	//all partner id's start with current year
 		
 		//Mark the newly created DBYear for saving during the next save event
 		partnerDBYear.setChanged(true);

@@ -115,8 +115,7 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		histDBYear.add(addedHistoryObj);
 		histDBYear.setChanged(true);
 		
-		//notify the corresponding family the history object has changed and
-		//check to see if new delivery assigned or removed a delivery from a driver
+		//notify the corresponding family the history object has changed
 		ServerFamilyDB serverFamilyDB = null;
 		try 
 		{
@@ -177,7 +176,6 @@ public class ServerFamilyHistoryDB extends ServerSeasonalDB
 		addedHisoryObj.setID(histDBYear.getNextID());
 		histDBYear.add(addedHisoryObj);
 		histDBYear.setChanged(true);
-		
 		
 		//notify the corresponding family that history object has changed and
 		//check to see if the object was a new delivery assigned or removed a delivery from a driver

@@ -30,6 +30,7 @@ import actforothers.ONCMeal;
 import actforothers.ONCUser;
 import actforothers.ONCWebsiteFamily;
 import actforothers.ONCWebsiteFamilyExtended;
+import actforothers.ServerGVs;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -41,6 +42,7 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	private static final int FAMILYDB_HEADER_LENGTH = 42;
 	private static final int FAMILY_STOPLIGHT_RED = 2;
 	private static final String ODB_FAMILY_MEMBER_COLUMN_SEPARATOR = " - ";
+	private static final int DEFAULT_PARTNER_ID = 1700000;
 	
 	private static List<FamilyDBYear> familyDB;
 	private static ServerFamilyDB instance = null;
@@ -314,12 +316,18 @@ public class ServerFamilyDB extends ServerSeasonalDB
 				updatedFamily.setONCNum(generateA4ONumber(year));
 			}
 			
-			//check to see if either status is changing, if so, add a history item
+			//check to see if either family or gift status is changing, if so, add a history item
 			if(currFam != null && 
 				(currFam.getFamilyStatus() != updatedFamily.getFamilyStatus() || currFam.getGiftStatus() != updatedFamily.getGiftStatus()))
 			{
+				//get current history item
+				A4OFamilyHistory currFH = familyHistoryDB.getHistory(year, currFam.getHistoryID());
+				
 				int histID = addHistoryItem(year, updatedFamily.getID(), updatedFamily.getFamilyStatus(), 
-						updatedFamily.getGiftStatus(), updatedFamily.getHistoryID(), "Status Changed", updatedFamily.getChangedBy());
+											updatedFamily.getGiftStatus(), 
+											currFH == null ? -1 : currFH.getPartnerID(), 
+											"Status Changed", updatedFamily.getChangedBy());
+				
 				updatedFamily.setHistoryID(histID);
 			}
 			
@@ -833,8 +841,28 @@ public class ServerFamilyDB extends ServerSeasonalDB
 	void updatedFamilyMeal(int year, ONCMeal addedMeal)
 	{
 		A4OFamily fam = getFamily(year, addedMeal.getFamilyID());
-		if(fam != null && fam.getMealStatus() != addedMeal.getStatus())
+		if(fam != null)
 		{
+			//check to see if the change affected family gift card status
+			ServerFamilyHistoryDB fhDB;
+			try 
+			{
+				fhDB = ServerFamilyHistoryDB.getInstance();
+				A4OFamilyHistory fh = fhDB.getHistory(year,fam.getHistoryID());
+				
+				if(addedMeal != null && fh != null)
+					fam.setGiftCardOnly(isGiftCardFamily(year, fh, addedMeal));
+			} 
+			catch (FileNotFoundException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			fam.setMealID(addedMeal.getID());
 			fam.setMealStatus(addedMeal.getStatus());
 			fam.setChangedBy(addedMeal.getChangedBy());
@@ -939,6 +967,26 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		FamilyDBYear famDBYear = familyDB.get(year - BASE_YEAR);
 		A4OFamily fam = getFamily(year, addedHistObj.getFamID());
 		
+		//check to see if the change affected family gift card status
+		ServerMealDB mealDB;
+		try 
+		{
+			mealDB = ServerMealDB.getInstance();
+			ONCMeal famMeal = mealDB.findCurrentMealForFamily(year, fam.getID());
+			
+			if(famMeal != null && addedHistObj != null)
+				fam.setGiftCardOnly(isGiftCardFamily(year, addedHistObj, famMeal));
+		} 
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		//update the history ID and gift status
 		fam.setHistoryID(addedHistObj.getID());
 		fam.setGiftStatus(addedHistObj.getGiftStatus());
@@ -949,6 +997,24 @@ public class ServerFamilyDB extends ServerSeasonalDB
 		Gson gson = new Gson();
     	String change = "UPDATED_FAMILY" + gson.toJson(fam, A4OFamily.class);
     	clientMgr.notifyAllInYearClients(year, change);	//null to notify all clients	
+	}
+	
+	boolean isGiftCardFamily(int year, A4OFamilyHistory fh, ONCMeal m)
+	{
+		int dPartnerID = DEFAULT_PARTNER_ID;
+		try {
+			ServerGlobalVariableDB sGVDB = ServerGlobalVariableDB.getInstance();
+			dPartnerID = sGVDB.getDefaultPartnerID(year);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		System.out.println(String.format("ServerFamDB.isGiftCardFam: dPID=%d", dPartnerID));
+		
+		return fh.getPartnerID() == dPartnerID || m.getMealPartnerID() == dPartnerID;
 	}
 /*	
 	void updateFamilyMeal(int year, ONCMeal addedMeal)
